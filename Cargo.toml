@@ -20,6 +20,3 @@ path = "netlink"
 [dev-dependencies]
 mio = "0.6"
 clap = "2"
-
-[badges]
-travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
