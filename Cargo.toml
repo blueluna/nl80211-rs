@@ -1,0 +1,16 @@
+[package]
+name = "nl80211"
+version = "0.1.0"
+authors = ["Erik Svensson <erik.public@gmail.com>"]
+build = "build.rs"
+
+[build-dependencies.netlink-buildtools]
+path = "netlink/buildtools"
+
+[dependencies]
+libc = "0.2"
+mio = "0.6"
+clap = "2"
+
+[dependencies.netlink]
+path = "netlink"

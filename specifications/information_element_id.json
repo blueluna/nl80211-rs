@@ -1,0 +1,181 @@
+{
+  "input_filepath": "somepath.h",
+  "datetime": 0,
+  "enumerations": {},
+  "attributes": {
+    "InformationElementId": {
+      "original_name": "IE",
+      "value_type": "u8",
+      "items": {
+        "Ssid": {
+          "value": 0,
+          "original_name": "IE_SSID",
+          "data_type": "string",
+          "data_length": 0
+        },
+        "SupportRates": {
+          "value": 1,
+          "original_name": "IE_DATA_RATES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "FrequencyHoppingParameters": {
+          "value": 2,
+          "original_name": "IE_FH_PARAMETERS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "DirectSpectrumParameters": {
+          "value": 3,
+          "original_name": "IE_DS_PARAMETERS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ContentionFreeParameters": {
+          "value": 4,
+          "original_name": "IE_CF_PARAMETERS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TrafficIndicationMap": {
+          "value": 5,
+          "original_name": "IE_TIM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "IbssParameter": {
+          "value": 6,
+          "original_name": "IE_IBSS_PARAMETER",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Country": {
+          "value": 7,
+          "original_name": "IE_COUNTRY",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "BssLoad": {
+          "value": 11,
+          "original_name": "IE_BSS_LOAD",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "PowerConstraint": {
+          "value": 32,
+          "original_name": "IE_POWER_CONSTRAINT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmitPowerControlReport": {
+          "value": 35,
+          "original_name": "IE_TPC_REPORT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtendedRatePhyInfo": {
+          "value": 42,
+          "original_name": "IE_ERP_INFO",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HighThroughputCapabilities": {
+          "value": 45,
+          "original_name": "IE_HT_CAPABILITIES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtendedRatePhyInfoOld": {
+          "value": 47,
+          "original_name": "IE_ERP_INFO_OLD",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "RobustSecurityNetwork": {
+          "value": 48,
+          "original_name": "IE_RSN",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtededSupportRates": {
+          "value": 50,
+          "original_name": "IE_EXTENDED_SUPPORT_RATES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "AccessPointChannelReport": {
+          "value": 51,
+          "original_name": "IE_AP_CHANNEL_REPORT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "SupportedOperatingClasses": {
+          "value": 59,
+          "original_name": "IE_SUPPORTED_OPERATING_CLASSES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtendedChannelSwitchAnnouncement": {
+          "value": 60,
+          "original_name": "IE_EXT_CHANSWITCH_ANN",
+          "data_type": "bytes",
+          "data_length": 4
+        },
+        "HighThroughputOperation": {
+          "value": 61,
+          "original_name": "IE_HT_OPERATION",
+          "data_type": "bytes",
+          "data_length": 22
+        },
+        "SecondaryChannelOffset": {
+          "value": 62,
+          "original_name": "IE_SECONDARY_CHANNEL_OFFSET",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "RoamingEnabledCapability": {
+          "value": 70,
+          "original_name": "IE_RM_ENABLED_CAPABILITY",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "OverlappingBssScanParameters": {
+          "value": 74,
+          "original_name": "IE_OVERLAPPING_BSS_SCAN_PARAMETERS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtendedCapabilities": {
+          "value": 127,
+          "original_name": "IE_EXTENDED_CAPABILITIES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VeryHighThroughputCapabilities": {
+          "value": 191,
+          "original_name": "IE_VHT_CAPABILITIES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VeryHighThroughputOperation": {
+          "value": 192,
+          "original_name": "IE_VHT_OPERATION",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VeryHighThroughputTransmitterPowerEnvelope": {
+          "value": 195,
+          "original_name": "IE_VHT_TX_POWER_ENVELOPE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VendorSpecific": {
+          "value": 221,
+          "original_name": "IE_VENDOR_SPECIFIC",
+          "data_type": "bytes",
+          "data_length": 0
+        }
+      }
+    }
+  }
+}

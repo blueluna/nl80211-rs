@@ -1,0 +1,1763 @@
+{
+  "input_filepath": "/usr/include/linux/nl80211.h",
+  "datetime": 0,
+  "enumerations": {
+    "InterfaceType": {
+      "original_name": "nl80211_iftype",
+      "value_type": "u32",
+      "default": null,
+      "items": {
+        "MeshPoint": {
+          "value": 7,
+          "original_name": "NL80211_IFTYPE_MESH_POINT"
+        },
+        "Unspecified": {
+          "value": 0,
+          "original_name": "NL80211_IFTYPE_UNSPECIFIED"
+        },
+        "Wds": {
+          "value": 5,
+          "original_name": "NL80211_IFTYPE_WDS"
+        },
+        "Station": {
+          "value": 2,
+          "original_name": "NL80211_IFTYPE_STATION"
+        },
+        "P2pGo": {
+          "value": 9,
+          "original_name": "NL80211_IFTYPE_P2P_GO"
+        },
+        "Ap": {
+          "value": 3,
+          "original_name": "NL80211_IFTYPE_AP"
+        },
+        "P2pClient": {
+          "value": 8,
+          "original_name": "NL80211_IFTYPE_P2P_CLIENT"
+        },
+        "Nan": {
+          "value": 12,
+          "original_name": "NL80211_IFTYPE_NAN"
+        },
+        "Adhoc": {
+          "value": 1,
+          "original_name": "NL80211_IFTYPE_ADHOC"
+        },
+        "ApVlan": {
+          "value": 4,
+          "original_name": "NL80211_IFTYPE_AP_VLAN"
+        },
+        "Ocb": {
+          "value": 11,
+          "original_name": "NL80211_IFTYPE_OCB"
+        },
+        "P2pDevice": {
+          "value": 10,
+          "original_name": "NL80211_IFTYPE_P2P_DEVICE"
+        },
+        "Monitor": {
+          "value": 6,
+          "original_name": "NL80211_IFTYPE_MONITOR"
+        }
+      }
+    }
+  },
+  "attributes": {
+    "Attribute": {
+      "original_name": "nl80211_attrs",
+      "value_type": "u16",
+      "items": {
+        "Unspec": {
+          "value": 0,
+          "original_name": "NL80211_ATTR_UNSPEC",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Wiphy": {
+          "value": 1,
+          "original_name": "NL80211_ATTR_WIPHY",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyName": {
+          "value": 2,
+          "original_name": "NL80211_ATTR_WIPHY_NAME",
+          "data_type": "string",
+          "data_length": 0,
+          "max_length": 19
+        },
+        "Ifindex": {
+          "value": 3,
+          "original_name": "NL80211_ATTR_IFINDEX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Ifname": {
+          "value": 4,
+          "original_name": "NL80211_ATTR_IFNAME",
+          "data_type": "string",
+          "data_length": 0,
+          "max_length": 15
+        },
+        "Iftype": {
+          "value": 5,
+          "original_name": "NL80211_ATTR_IFTYPE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Mac": {
+          "value": 6,
+          "original_name": "NL80211_ATTR_MAC",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "KeyData": {
+          "value": 7,
+          "original_name": "NL80211_ATTR_KEY_DATA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "KeyIdx": {
+          "value": 8,
+          "original_name": "NL80211_ATTR_KEY_IDX",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "KeyCipher": {
+          "value": 9,
+          "original_name": "NL80211_ATTR_KEY_CIPHER",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "KeySeq": {
+          "value": 10,
+          "original_name": "NL80211_ATTR_KEY_SEQ",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 16
+        },
+        "KeyDefault": {
+          "value": 11,
+          "original_name": "NL80211_ATTR_KEY_DEFAULT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "BeaconInterval": {
+          "value": 12,
+          "original_name": "NL80211_ATTR_BEACON_INTERVAL",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "DtimPeriod": {
+          "value": 13,
+          "original_name": "NL80211_ATTR_DTIM_PERIOD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "BeaconHead": {
+          "value": 14,
+          "original_name": "NL80211_ATTR_BEACON_HEAD",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "BeaconTail": {
+          "value": 15,
+          "original_name": "NL80211_ATTR_BEACON_TAIL",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "StaAid": {
+          "value": 16,
+          "original_name": "NL80211_ATTR_STA_AID",
+          "data_type": "u16",
+          "data_length": 2
+        },
+        "StaFlags": {
+          "value": 17,
+          "original_name": "NL80211_ATTR_STA_FLAGS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "StaListenInterval": {
+          "value": 18,
+          "original_name": "NL80211_ATTR_STA_LISTEN_INTERVAL",
+          "data_type": "u16",
+          "data_length": 2
+        },
+        "StaSupportedRates": {
+          "value": 19,
+          "original_name": "NL80211_ATTR_STA_SUPPORTED_RATES",
+          "data_type": "bytes",
+          "data_length": 32
+        },
+        "StaVlan": {
+          "value": 20,
+          "original_name": "NL80211_ATTR_STA_VLAN",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "StaInfo": {
+          "value": 21,
+          "original_name": "NL80211_ATTR_STA_INFO",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "WiphyBands": {
+          "value": 22,
+          "original_name": "NL80211_ATTR_WIPHY_BANDS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MntrFlags": {
+          "value": 23,
+          "original_name": "NL80211_ATTR_MNTR_FLAGS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "MeshId": {
+          "value": 24,
+          "original_name": "NL80211_ATTR_MESH_ID",
+          "data_type": "bytes",
+          "data_length": 32
+        },
+        "StaPlinkAction": {
+          "value": 25,
+          "original_name": "NL80211_ATTR_STA_PLINK_ACTION",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "MpathNextHop": {
+          "value": 26,
+          "original_name": "NL80211_ATTR_MPATH_NEXT_HOP",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MpathInfo": {
+          "value": 27,
+          "original_name": "NL80211_ATTR_MPATH_INFO",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "BssCtsProt": {
+          "value": 28,
+          "original_name": "NL80211_ATTR_BSS_CTS_PROT",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "BssShortPreamble": {
+          "value": 29,
+          "original_name": "NL80211_ATTR_BSS_SHORT_PREAMBLE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "BssShortSlotTime": {
+          "value": 30,
+          "original_name": "NL80211_ATTR_BSS_SHORT_SLOT_TIME",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "HtCapability": {
+          "value": 31,
+          "original_name": "NL80211_ATTR_HT_CAPABILITY",
+          "data_type": "bytes",
+          "data_length": 26
+        },
+        "SupportedIftypes": {
+          "value": 32,
+          "original_name": "NL80211_ATTR_SUPPORTED_IFTYPES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "RegAlpha2": {
+          "value": 33,
+          "original_name": "NL80211_ATTR_REG_ALPHA2",
+          "data_type": "string",
+          "data_length": 2
+        },
+        "RegRules": {
+          "value": 34,
+          "original_name": "NL80211_ATTR_REG_RULES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MeshConfig": {
+          "value": 35,
+          "original_name": "NL80211_ATTR_MESH_CONFIG",
+          "data_type": "nested",
+          "data_length": 4
+        },
+        "BssBasicRates": {
+          "value": 36,
+          "original_name": "NL80211_ATTR_BSS_BASIC_RATES",
+          "data_type": "bytes",
+          "data_length": 32
+        },
+        "WiphyTxqParams": {
+          "value": 37,
+          "original_name": "NL80211_ATTR_WIPHY_TXQ_PARAMS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "WiphyFreq": {
+          "value": 38,
+          "original_name": "NL80211_ATTR_WIPHY_FREQ",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyChannelType": {
+          "value": 39,
+          "original_name": "NL80211_ATTR_WIPHY_CHANNEL_TYPE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "KeyDefaultMgmt": {
+          "value": 40,
+          "original_name": "NL80211_ATTR_KEY_DEFAULT_MGMT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "MgmtSubtype": {
+          "value": 41,
+          "original_name": "NL80211_ATTR_MGMT_SUBTYPE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "Ie": {
+          "value": 42,
+          "original_name": "NL80211_ATTR_IE",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "MaxNumScanSsids": {
+          "value": 43,
+          "original_name": "NL80211_ATTR_MAX_NUM_SCAN_SSIDS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "ScanFrequencies": {
+          "value": 44,
+          "original_name": "NL80211_ATTR_SCAN_FREQUENCIES",
+          "data_type": "nested",
+          "data_length": 1
+        },
+        "ScanSsids": {
+          "value": 45,
+          "original_name": "NL80211_ATTR_SCAN_SSIDS",
+          "data_type": "nested",
+          "data_length": 1
+        },
+        "Generation": {
+          "value": 46,
+          "original_name": "NL80211_ATTR_GENERATION",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Bss": {
+          "value": 47,
+          "original_name": "NL80211_ATTR_BSS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "RegInitiator": {
+          "value": 48,
+          "original_name": "NL80211_ATTR_REG_INITIATOR",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "RegType": {
+          "value": 49,
+          "original_name": "NL80211_ATTR_REG_TYPE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "SupportedCommands": {
+          "value": 50,
+          "original_name": "NL80211_ATTR_SUPPORTED_COMMANDS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Frame": {
+          "value": 51,
+          "original_name": "NL80211_ATTR_FRAME",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "Ssid": {
+          "value": 52,
+          "original_name": "NL80211_ATTR_SSID",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 32
+        },
+        "AuthType": {
+          "value": 53,
+          "original_name": "NL80211_ATTR_AUTH_TYPE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ReasonCode": {
+          "value": 54,
+          "original_name": "NL80211_ATTR_REASON_CODE",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "KeyType": {
+          "value": 55,
+          "original_name": "NL80211_ATTR_KEY_TYPE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaxScanIeLen": {
+          "value": 56,
+          "original_name": "NL80211_ATTR_MAX_SCAN_IE_LEN",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "CipherSuites": {
+          "value": 57,
+          "original_name": "NL80211_ATTR_CIPHER_SUITES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "FreqBefore": {
+          "value": 58,
+          "original_name": "NL80211_ATTR_FREQ_BEFORE",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "FreqAfter": {
+          "value": 59,
+          "original_name": "NL80211_ATTR_FREQ_AFTER",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "FreqFixed": {
+          "value": 60,
+          "original_name": "NL80211_ATTR_FREQ_FIXED",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "WiphyRetryShort": {
+          "value": 61,
+          "original_name": "NL80211_ATTR_WIPHY_RETRY_SHORT",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "WiphyRetryLong": {
+          "value": 62,
+          "original_name": "NL80211_ATTR_WIPHY_RETRY_LONG",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "WiphyFragThreshold": {
+          "value": 63,
+          "original_name": "NL80211_ATTR_WIPHY_FRAG_THRESHOLD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyRtsThreshold": {
+          "value": 64,
+          "original_name": "NL80211_ATTR_WIPHY_RTS_THRESHOLD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TimedOut": {
+          "value": 65,
+          "original_name": "NL80211_ATTR_TIMED_OUT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "UseMfp": {
+          "value": 66,
+          "original_name": "NL80211_ATTR_USE_MFP",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "StaFlags2": {
+          "value": 67,
+          "original_name": "NL80211_ATTR_STA_FLAGS2",
+          "data_type": "bytes",
+          "data_length": 8
+        },
+        "ControlPort": {
+          "value": 68,
+          "original_name": "NL80211_ATTR_CONTROL_PORT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Testdata": {
+          "value": 69,
+          "original_name": "NL80211_ATTR_TESTDATA",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Privacy": {
+          "value": 70,
+          "original_name": "NL80211_ATTR_PRIVACY",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "DisconnectedByAp": {
+          "value": 71,
+          "original_name": "NL80211_ATTR_DISCONNECTED_BY_AP",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "StatusCode": {
+          "value": 72,
+          "original_name": "NL80211_ATTR_STATUS_CODE",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "CipherSuitesPairwise": {
+          "value": 73,
+          "original_name": "NL80211_ATTR_CIPHER_SUITES_PAIRWISE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "CipherSuiteGroup": {
+          "value": 74,
+          "original_name": "NL80211_ATTR_CIPHER_SUITE_GROUP",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WpaVersions": {
+          "value": 75,
+          "original_name": "NL80211_ATTR_WPA_VERSIONS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "AkmSuites": {
+          "value": 76,
+          "original_name": "NL80211_ATTR_AKM_SUITES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ReqIe": {
+          "value": 77,
+          "original_name": "NL80211_ATTR_REQ_IE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "RespIe": {
+          "value": 78,
+          "original_name": "NL80211_ATTR_RESP_IE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "PrevBssid": {
+          "value": 79,
+          "original_name": "NL80211_ATTR_PREV_BSSID",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "Key": {
+          "value": 80,
+          "original_name": "NL80211_ATTR_KEY",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Keys": {
+          "value": 81,
+          "original_name": "NL80211_ATTR_KEYS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Pid": {
+          "value": 82,
+          "original_name": "NL80211_ATTR_PID",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Addr": {
+          "value": 83,
+          "original_name": "NL80211_ATTR_4ADDR",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "SurveyInfo": {
+          "value": 84,
+          "original_name": "NL80211_ATTR_SURVEY_INFO",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Pmkid": {
+          "value": 85,
+          "original_name": "NL80211_ATTR_PMKID",
+          "data_type": "bytes",
+          "data_length": 16
+        },
+        "MaxNumPmkids": {
+          "value": 86,
+          "original_name": "NL80211_ATTR_MAX_NUM_PMKIDS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "Duration": {
+          "value": 87,
+          "original_name": "NL80211_ATTR_DURATION",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Cookie": {
+          "value": 88,
+          "original_name": "NL80211_ATTR_COOKIE",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "WiphyCoverageClass": {
+          "value": 89,
+          "original_name": "NL80211_ATTR_WIPHY_COVERAGE_CLASS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TxRates": {
+          "value": 90,
+          "original_name": "NL80211_ATTR_TX_RATES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "FrameMatch": {
+          "value": 91,
+          "original_name": "NL80211_ATTR_FRAME_MATCH",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Ack": {
+          "value": 92,
+          "original_name": "NL80211_ATTR_ACK",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "PsState": {
+          "value": 93,
+          "original_name": "NL80211_ATTR_PS_STATE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Cqm": {
+          "value": 94,
+          "original_name": "NL80211_ATTR_CQM",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "LocalStateChange": {
+          "value": 95,
+          "original_name": "NL80211_ATTR_LOCAL_STATE_CHANGE",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "ApIsolate": {
+          "value": 96,
+          "original_name": "NL80211_ATTR_AP_ISOLATE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "WiphyTxPowerSetting": {
+          "value": 97,
+          "original_name": "NL80211_ATTR_WIPHY_TX_POWER_SETTING",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyTxPowerLevel": {
+          "value": 98,
+          "original_name": "NL80211_ATTR_WIPHY_TX_POWER_LEVEL",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TxFrameTypes": {
+          "value": 99,
+          "original_name": "NL80211_ATTR_TX_FRAME_TYPES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "RxFrameTypes": {
+          "value": 100,
+          "original_name": "NL80211_ATTR_RX_FRAME_TYPES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "FrameType": {
+          "value": 101,
+          "original_name": "NL80211_ATTR_FRAME_TYPE",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "ControlPortEthertype": {
+          "value": 102,
+          "original_name": "NL80211_ATTR_CONTROL_PORT_ETHERTYPE",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "ControlPortNoEncrypt": {
+          "value": 103,
+          "original_name": "NL80211_ATTR_CONTROL_PORT_NO_ENCRYPT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "SupportIbssRsn": {
+          "value": 104,
+          "original_name": "NL80211_ATTR_SUPPORT_IBSS_RSN",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "WiphyAntennaTx": {
+          "value": 105,
+          "original_name": "NL80211_ATTR_WIPHY_ANTENNA_TX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyAntennaRx": {
+          "value": 106,
+          "original_name": "NL80211_ATTR_WIPHY_ANTENNA_RX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "McastRate": {
+          "value": 107,
+          "original_name": "NL80211_ATTR_MCAST_RATE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "OffchannelTxOk": {
+          "value": 108,
+          "original_name": "NL80211_ATTR_OFFCHANNEL_TX_OK",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "BssHtOpmode": {
+          "value": 109,
+          "original_name": "NL80211_ATTR_BSS_HT_OPMODE",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "KeyDefaultTypes": {
+          "value": 110,
+          "original_name": "NL80211_ATTR_KEY_DEFAULT_TYPES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MaxRemainOnChannelDuration": {
+          "value": 111,
+          "original_name": "NL80211_ATTR_MAX_REMAIN_ON_CHANNEL_DURATION",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MeshSetup": {
+          "value": 112,
+          "original_name": "NL80211_ATTR_MESH_SETUP",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "WiphyAntennaAvailTx": {
+          "value": 113,
+          "original_name": "NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WiphyAntennaAvailRx": {
+          "value": 114,
+          "original_name": "NL80211_ATTR_WIPHY_ANTENNA_AVAIL_RX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SupportMeshAuth": {
+          "value": 115,
+          "original_name": "NL80211_ATTR_SUPPORT_MESH_AUTH",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "StaPlinkState": {
+          "value": 116,
+          "original_name": "NL80211_ATTR_STA_PLINK_STATE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "WowlanTriggers": {
+          "value": 117,
+          "original_name": "NL80211_ATTR_WOWLAN_TRIGGERS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "WowlanTriggersSupported": {
+          "value": 118,
+          "original_name": "NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "SchedScanInterval": {
+          "value": 119,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_INTERVAL",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "InterfaceCombinations": {
+          "value": 120,
+          "original_name": "NL80211_ATTR_INTERFACE_COMBINATIONS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "SoftwareIftypes": {
+          "value": 121,
+          "original_name": "NL80211_ATTR_SOFTWARE_IFTYPES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "RekeyData": {
+          "value": 122,
+          "original_name": "NL80211_ATTR_REKEY_DATA",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MaxNumSchedScanSsids": {
+          "value": 123,
+          "original_name": "NL80211_ATTR_MAX_NUM_SCHED_SCAN_SSIDS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "MaxSchedScanIeLen": {
+          "value": 124,
+          "original_name": "NL80211_ATTR_MAX_SCHED_SCAN_IE_LEN",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "ScanSuppRates": {
+          "value": 125,
+          "original_name": "NL80211_ATTR_SCAN_SUPP_RATES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "HiddenSsid": {
+          "value": 126,
+          "original_name": "NL80211_ATTR_HIDDEN_SSID",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "IeProbeResp": {
+          "value": 127,
+          "original_name": "NL80211_ATTR_IE_PROBE_RESP",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "IeAssocResp": {
+          "value": 128,
+          "original_name": "NL80211_ATTR_IE_ASSOC_RESP",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "StaWme": {
+          "value": 129,
+          "original_name": "NL80211_ATTR_STA_WME",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "SupportApUapsd": {
+          "value": 130,
+          "original_name": "NL80211_ATTR_SUPPORT_AP_UAPSD",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "RoamSupport": {
+          "value": 131,
+          "original_name": "NL80211_ATTR_ROAM_SUPPORT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "SchedScanMatch": {
+          "value": 132,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_MATCH",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MaxMatchSets": {
+          "value": 133,
+          "original_name": "NL80211_ATTR_MAX_MATCH_SETS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "PmksaCandidate": {
+          "value": 134,
+          "original_name": "NL80211_ATTR_PMKSA_CANDIDATE",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "TxNoCckRate": {
+          "value": 135,
+          "original_name": "NL80211_ATTR_TX_NO_CCK_RATE",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "TdlsAction": {
+          "value": 136,
+          "original_name": "NL80211_ATTR_TDLS_ACTION",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TdlsDialogToken": {
+          "value": 137,
+          "original_name": "NL80211_ATTR_TDLS_DIALOG_TOKEN",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TdlsOperation": {
+          "value": 138,
+          "original_name": "NL80211_ATTR_TDLS_OPERATION",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TdlsSupport": {
+          "value": 139,
+          "original_name": "NL80211_ATTR_TDLS_SUPPORT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "TdlsExternalSetup": {
+          "value": 140,
+          "original_name": "NL80211_ATTR_TDLS_EXTERNAL_SETUP",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "DeviceApSme": {
+          "value": 141,
+          "original_name": "NL80211_ATTR_DEVICE_AP_SME",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "DontWaitForAck": {
+          "value": 142,
+          "original_name": "NL80211_ATTR_DONT_WAIT_FOR_ACK",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "FeatureFlags": {
+          "value": 143,
+          "original_name": "NL80211_ATTR_FEATURE_FLAGS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ProbeRespOffload": {
+          "value": 144,
+          "original_name": "NL80211_ATTR_PROBE_RESP_OFFLOAD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ProbeResp": {
+          "value": 145,
+          "original_name": "NL80211_ATTR_PROBE_RESP",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "DfsRegion": {
+          "value": 146,
+          "original_name": "NL80211_ATTR_DFS_REGION",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "DisableHt": {
+          "value": 147,
+          "original_name": "NL80211_ATTR_DISABLE_HT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "HtCapabilityMask": {
+          "value": 148,
+          "original_name": "NL80211_ATTR_HT_CAPABILITY_MASK",
+          "data_type": "bytes",
+          "data_length": 26
+        },
+        "NoackMap": {
+          "value": 149,
+          "original_name": "NL80211_ATTR_NOACK_MAP",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "InactivityTimeout": {
+          "value": 150,
+          "original_name": "NL80211_ATTR_INACTIVITY_TIMEOUT",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "RxSignalDbm": {
+          "value": 151,
+          "original_name": "NL80211_ATTR_RX_SIGNAL_DBM",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "BgScanPeriod": {
+          "value": 152,
+          "original_name": "NL80211_ATTR_BG_SCAN_PERIOD",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "Wdev": {
+          "value": 153,
+          "original_name": "NL80211_ATTR_WDEV",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "UserRegHintType": {
+          "value": 154,
+          "original_name": "NL80211_ATTR_USER_REG_HINT_TYPE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ConnFailedReason": {
+          "value": 155,
+          "original_name": "NL80211_ATTR_CONN_FAILED_REASON",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "AuthData": {
+          "value": 156,
+          "original_name": "NL80211_ATTR_AUTH_DATA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VhtCapability": {
+          "value": 157,
+          "original_name": "NL80211_ATTR_VHT_CAPABILITY",
+          "data_type": "bytes",
+          "data_length": 12
+        },
+        "ScanFlags": {
+          "value": 158,
+          "original_name": "NL80211_ATTR_SCAN_FLAGS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ChannelWidth": {
+          "value": 159,
+          "original_name": "NL80211_ATTR_CHANNEL_WIDTH",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "CenterFreq1": {
+          "value": 160,
+          "original_name": "NL80211_ATTR_CENTER_FREQ1",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "CenterFreq2": {
+          "value": 161,
+          "original_name": "NL80211_ATTR_CENTER_FREQ2",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "P2pCtwindow": {
+          "value": 162,
+          "original_name": "NL80211_ATTR_P2P_CTWINDOW",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "P2pOppps": {
+          "value": 163,
+          "original_name": "NL80211_ATTR_P2P_OPPPS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "LocalMeshPowerMode": {
+          "value": 164,
+          "original_name": "NL80211_ATTR_LOCAL_MESH_POWER_MODE",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "AclPolicy": {
+          "value": 165,
+          "original_name": "NL80211_ATTR_ACL_POLICY",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MacAddrs": {
+          "value": 166,
+          "original_name": "NL80211_ATTR_MAC_ADDRS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MacAclMax": {
+          "value": 167,
+          "original_name": "NL80211_ATTR_MAC_ACL_MAX",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "RadarEvent": {
+          "value": 168,
+          "original_name": "NL80211_ATTR_RADAR_EVENT",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ExtCapa": {
+          "value": 169,
+          "original_name": "NL80211_ATTR_EXT_CAPA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExtCapaMask": {
+          "value": 170,
+          "original_name": "NL80211_ATTR_EXT_CAPA_MASK",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "StaCapability": {
+          "value": 171,
+          "original_name": "NL80211_ATTR_STA_CAPABILITY",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "StaExtCapability": {
+          "value": 172,
+          "original_name": "NL80211_ATTR_STA_EXT_CAPABILITY",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ProtocolFeatures": {
+          "value": 173,
+          "original_name": "NL80211_ATTR_PROTOCOL_FEATURES",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SplitWiphyDump": {
+          "value": 174,
+          "original_name": "NL80211_ATTR_SPLIT_WIPHY_DUMP",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "DisableVht": {
+          "value": 175,
+          "original_name": "NL80211_ATTR_DISABLE_VHT",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "VhtCapabilityMask": {
+          "value": 176,
+          "original_name": "NL80211_ATTR_VHT_CAPABILITY_MASK",
+          "data_type": "bytes",
+          "data_length": 12
+        },
+        "Mdid": {
+          "value": 177,
+          "original_name": "NL80211_ATTR_MDID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "IeRic": {
+          "value": 178,
+          "original_name": "NL80211_ATTR_IE_RIC",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 2304
+        },
+        "CritProtId": {
+          "value": 179,
+          "original_name": "NL80211_ATTR_CRIT_PROT_ID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "MaxCritProtDuration": {
+          "value": 180,
+          "original_name": "NL80211_ATTR_MAX_CRIT_PROT_DURATION",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "PeerAid": {
+          "value": 181,
+          "original_name": "NL80211_ATTR_PEER_AID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "CoalesceRule": {
+          "value": 182,
+          "original_name": "NL80211_ATTR_COALESCE_RULE",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "ChSwitchCount": {
+          "value": 183,
+          "original_name": "NL80211_ATTR_CH_SWITCH_COUNT",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ChSwitchBlockTx": {
+          "value": 184,
+          "original_name": "NL80211_ATTR_CH_SWITCH_BLOCK_TX",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "CsaIes": {
+          "value": 185,
+          "original_name": "NL80211_ATTR_CSA_IES",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "CsaCOffBeacon": {
+          "value": 186,
+          "original_name": "NL80211_ATTR_CSA_C_OFF_BEACON",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "CsaCOffPresp": {
+          "value": 187,
+          "original_name": "NL80211_ATTR_CSA_C_OFF_PRESP",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "RxmgmtFlags": {
+          "value": 188,
+          "original_name": "NL80211_ATTR_RXMGMT_FLAGS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "StaSupportedChannels": {
+          "value": 189,
+          "original_name": "NL80211_ATTR_STA_SUPPORTED_CHANNELS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "StaSupportedOperClasses": {
+          "value": 190,
+          "original_name": "NL80211_ATTR_STA_SUPPORTED_OPER_CLASSES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HandleDfs": {
+          "value": 191,
+          "original_name": "NL80211_ATTR_HANDLE_DFS",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Support5Mhz": {
+          "value": 192,
+          "original_name": "NL80211_ATTR_SUPPORT_5_MHZ",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Support0Mhz": {
+          "value": 193,
+          "original_name": "NL80211_ATTR_SUPPORT_10_MHZ",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "OpmodeNotif": {
+          "value": 194,
+          "original_name": "NL80211_ATTR_OPMODE_NOTIF",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "VendorId": {
+          "value": 195,
+          "original_name": "NL80211_ATTR_VENDOR_ID",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "VendorSubcmd": {
+          "value": 196,
+          "original_name": "NL80211_ATTR_VENDOR_SUBCMD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "VendorData": {
+          "value": 197,
+          "original_name": "NL80211_ATTR_VENDOR_DATA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VendorEvents": {
+          "value": 198,
+          "original_name": "NL80211_ATTR_VENDOR_EVENTS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "QosMap": {
+          "value": 199,
+          "original_name": "NL80211_ATTR_QOS_MAP",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 58
+        },
+        "MacHint": {
+          "value": 200,
+          "original_name": "NL80211_ATTR_MAC_HINT",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "WiphyFreqHint": {
+          "value": 201,
+          "original_name": "NL80211_ATTR_WIPHY_FREQ_HINT",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaxApAssocSta": {
+          "value": 202,
+          "original_name": "NL80211_ATTR_MAX_AP_ASSOC_STA",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TdlsPeerCapability": {
+          "value": 203,
+          "original_name": "NL80211_ATTR_TDLS_PEER_CAPABILITY",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SocketOwner": {
+          "value": 204,
+          "original_name": "NL80211_ATTR_SOCKET_OWNER",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "CsaCOffsetsTx": {
+          "value": 205,
+          "original_name": "NL80211_ATTR_CSA_C_OFFSETS_TX",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "MaxCsaCounters": {
+          "value": 206,
+          "original_name": "NL80211_ATTR_MAX_CSA_COUNTERS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TdlsInitiator": {
+          "value": 207,
+          "original_name": "NL80211_ATTR_TDLS_INITIATOR",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "UseRrm": {
+          "value": 208,
+          "original_name": "NL80211_ATTR_USE_RRM",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "WiphyDynAck": {
+          "value": 209,
+          "original_name": "NL80211_ATTR_WIPHY_DYN_ACK",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Tsid": {
+          "value": 210,
+          "original_name": "NL80211_ATTR_TSID",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "UserPrio": {
+          "value": 211,
+          "original_name": "NL80211_ATTR_USER_PRIO",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "AdmittedTime": {
+          "value": 212,
+          "original_name": "NL80211_ATTR_ADMITTED_TIME",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "SmpsMode": {
+          "value": 213,
+          "original_name": "NL80211_ATTR_SMPS_MODE",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "OperClass": {
+          "value": 214,
+          "original_name": "NL80211_ATTR_OPER_CLASS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "MacMask": {
+          "value": 215,
+          "original_name": "NL80211_ATTR_MAC_MASK",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "WiphySelfManagedReg": {
+          "value": 216,
+          "original_name": "NL80211_ATTR_WIPHY_SELF_MANAGED_REG",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "ExtFeatures": {
+          "value": 217,
+          "original_name": "NL80211_ATTR_EXT_FEATURES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "SurveyRadioStats": {
+          "value": 218,
+          "original_name": "NL80211_ATTR_SURVEY_RADIO_STATS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "NetnsFd": {
+          "value": 219,
+          "original_name": "NL80211_ATTR_NETNS_FD",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SchedScanDelay": {
+          "value": 220,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_DELAY",
+          "data_type": "u32",
+          "data_length": 4
+        },
+        "RegIndoor": {
+          "value": 221,
+          "original_name": "NL80211_ATTR_REG_INDOOR",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "MaxNumSchedScanPlans": {
+          "value": 222,
+          "original_name": "NL80211_ATTR_MAX_NUM_SCHED_SCAN_PLANS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaxScanPlanInterval": {
+          "value": 223,
+          "original_name": "NL80211_ATTR_MAX_SCAN_PLAN_INTERVAL",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaxScanPlanIterations": {
+          "value": 224,
+          "original_name": "NL80211_ATTR_MAX_SCAN_PLAN_ITERATIONS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SchedScanPlans": {
+          "value": 225,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_PLANS",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "Pbss": {
+          "value": 226,
+          "original_name": "NL80211_ATTR_PBSS",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "BssSelect": {
+          "value": 227,
+          "original_name": "NL80211_ATTR_BSS_SELECT",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "StaSupportP2pPs": {
+          "value": 228,
+          "original_name": "NL80211_ATTR_STA_SUPPORT_P2P_PS",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "Pad": {
+          "value": 229,
+          "original_name": "NL80211_ATTR_PAD",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "IftypeExtCapa": {
+          "value": 230,
+          "original_name": "NL80211_ATTR_IFTYPE_EXT_CAPA",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "MuMimoGroupData": {
+          "value": 231,
+          "original_name": "NL80211_ATTR_MU_MIMO_GROUP_DATA",
+          "data_type": "bytes",
+          "data_length": 24
+        },
+        "MuMimoFollowMacAddr": {
+          "value": 232,
+          "original_name": "NL80211_ATTR_MU_MIMO_FOLLOW_MAC_ADDR",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "ScanStartTimeTsf": {
+          "value": 233,
+          "original_name": "NL80211_ATTR_SCAN_START_TIME_TSF",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "ScanStartTimeTsfBssid": {
+          "value": 234,
+          "original_name": "NL80211_ATTR_SCAN_START_TIME_TSF_BSSID",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "MeasurementDuration": {
+          "value": 235,
+          "original_name": "NL80211_ATTR_MEASUREMENT_DURATION",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "MeasurementDurationMandatory": {
+          "value": 236,
+          "original_name": "NL80211_ATTR_MEASUREMENT_DURATION_MANDATORY",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "MeshPeerAid": {
+          "value": 237,
+          "original_name": "NL80211_ATTR_MESH_PEER_AID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "NanMasterPref": {
+          "value": 238,
+          "original_name": "NL80211_ATTR_NAN_MASTER_PREF",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "Bands": {
+          "value": 239,
+          "original_name": "NL80211_ATTR_BANDS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "NanFunc": {
+          "value": 240,
+          "original_name": "NL80211_ATTR_NAN_FUNC",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "NanMatch": {
+          "value": 241,
+          "original_name": "NL80211_ATTR_NAN_MATCH",
+          "data_type": "nested",
+          "data_length": 0
+        },
+        "FilsKek": {
+          "value": 242,
+          "original_name": "NL80211_ATTR_FILS_KEK",
+          "data_type": "bytes",
+          "data_length": 64
+        },
+        "FilsNonces": {
+          "value": 243,
+          "original_name": "NL80211_ATTR_FILS_NONCES",
+          "data_type": "bytes",
+          "data_length": 32
+        },
+        "MulticastToUnicastEnabled": {
+          "value": 244,
+          "original_name": "NL80211_ATTR_MULTICAST_TO_UNICAST_ENABLED",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Bssid": {
+          "value": 245,
+          "original_name": "NL80211_ATTR_BSSID",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "SchedScanRelativeRssi": {
+          "value": 246,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_RELATIVE_RSSI",
+          "data_type": "i8",
+          "data_length": 0
+        },
+        "SchedScanRssiAdjust": {
+          "value": 247,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_RSSI_ADJUST",
+          "data_type": "bytes",
+          "data_length": 2
+        },
+        "TimeoutReason": {
+          "value": 248,
+          "original_name": "NL80211_ATTR_TIMEOUT_REASON",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "FilsErpUsername": {
+          "value": 249,
+          "original_name": "NL80211_ATTR_FILS_ERP_USERNAME",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 16
+        },
+        "FilsErpRealm": {
+          "value": 250,
+          "original_name": "NL80211_ATTR_FILS_ERP_REALM",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 253
+        },
+        "FilsErpNextSeqNum": {
+          "value": 251,
+          "original_name": "NL80211_ATTR_FILS_ERP_NEXT_SEQ_NUM",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "FilsErpRrk": {
+          "value": 252,
+          "original_name": "NL80211_ATTR_FILS_ERP_RRK",
+          "data_type": "bytes",
+          "data_length": 64
+        },
+        "FilsCacheId": {
+          "value": 253,
+          "original_name": "NL80211_ATTR_FILS_CACHE_ID",
+          "data_type": "bytes",
+          "data_length": 2
+        },
+        "Pmk": {
+          "value": 254,
+          "original_name": "NL80211_ATTR_PMK",
+          "data_type": "bytes",
+          "data_length": 0,
+          "max_length": 48
+        },
+        "SchedScanMulti": {
+          "value": 255,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_MULTI",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "SchedScanMaxReqs": {
+          "value": 256,
+          "original_name": "NL80211_ATTR_SCHED_SCAN_MAX_REQS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "WantXWayHs": {
+          "value": 257,
+          "original_name": "NL80211_ATTR_WANT_1X_4WAY_HS",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "Pmkr0Name": {
+          "value": 258,
+          "original_name": "NL80211_ATTR_PMKR0_NAME",
+          "data_type": "bytes",
+          "data_length": 16
+        },
+        "PortAuthorized": {
+          "value": 259,
+          "original_name": "NL80211_ATTR_PORT_AUTHORIZED",
+          "data_type": "bytes",
+          "data_length": 0
+        }
+      }
+    },
+    "BssAttribute": {
+      "original_name": "nl80211_bss",
+      "value_type": "u16",
+      "items": {
+        "Bssid": {
+          "value": 1,
+          "original_name": "NL80211_BSS_BSSID",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "Frequency": {
+          "value": 2,
+          "original_name": "NL80211_BSS_FREQUENCY",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Tsf": {
+          "value": 3,
+          "original_name": "NL80211_BSS_TSF",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "BeaconInterval": {
+          "value": 4,
+          "original_name": "NL80211_BSS_BEACON_INTERVAL",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "Capability": {
+          "value": 5,
+          "original_name": "NL80211_BSS_CAPABILITY",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "InformationElements": {
+          "value": 6,
+          "original_name": "NL80211_BSS_INFORMATION_ELEMENTS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "SignalMbm": {
+          "value": 7,
+          "original_name": "NL80211_BSS_SIGNAL_MBM",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SignalUnspec": {
+          "value": 8,
+          "original_name": "NL80211_BSS_SIGNAL_UNSPEC",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "Status": {
+          "value": 9,
+          "original_name": "NL80211_BSS_STATUS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SeenMsAgo": {
+          "value": 10,
+          "original_name": "NL80211_BSS_SEEN_MS_AGO",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "BeaconIes": {
+          "value": 11,
+          "original_name": "NL80211_BSS_BEACON_IES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ChanWidth": {
+          "value": 12,
+          "original_name": "NL80211_BSS_CHAN_WIDTH",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "BeaconTsf": {
+          "value": 13,
+          "original_name": "NL80211_BSS_BEACON_TSF",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "PrespData": {
+          "value": 14,
+          "original_name": "NL80211_BSS_PRESP_DATA",
+          "data_type": "flag",
+          "data_length": 0
+        },
+        "LastSeenBootTime": {
+          "value": 15,
+          "original_name": "NL80211_BSS_LAST_SEEN_BOOTTIME",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "Pad": {
+          "value": 16,
+          "original_name": "NL80211_BSS_PAD",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "ParentTsf": {
+          "value": 17,
+          "original_name": "NL80211_BSS_PARENT_TSF",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "ParentBssid": {
+          "value": 18,
+          "original_name": "NL80211_BSS_PARENT_BSSID",
+          "data_type": "bytes",
+          "data_length": 6
+        }
+      }
+    }
+  }
+}

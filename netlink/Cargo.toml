@@ -1,0 +1,21 @@
+[package]
+name = "netlink"
+version = "0.1.0"
+authors = ["Erik Svensson <erik.public@gmail.com>"]
+build = "build.rs"
+
+[build-dependencies]
+bindgen = "0.32"
+
+[dependencies]
+libc = "0.2"
+byteorder = "1.2"
+bitflags =  "1.0"
+
+[dependencies.error-chain]
+version = "0.11"
+default-features = false
+features = []
+
+[dev-dependencies]
+mio = "0.6"

@@ -1,0 +1,28 @@
+# ieee 802.11 and NL80211 Abbreviations
+
+ - ACL, Access Control Lists
+ - BSS, Basic Service Set
+ - CF, Contention Free
+ - CQM, Connection Quanlity Monitor
+ - DS, Direct Spectrum
+ - FH, Frequency Hopping
+ - ERP, Extended Rate PHY
+ - FT, Fast Transition
+ - IBSS, Independent BSS, Ad-hoc network
+ - IE, Information Element
+ - MPP, Mesh Proxy Path
+ - NDP, Null Data Packet
+ - NAN, Neighborhood Area Network
+ - OCB, Outside the Context of a BSS
+ - P2P, Peer to Peer
+ - PMK, Pairwise Master Key
+ - PMKSA, Pairwise Master Key Security Assicoation
+ - QBSS, QOS enhanced Basic Service Set
+ - REG, Regulatory Domain
+ - TDLS, Tunneled Direct Link Setup
+ - TIM, Traffic Indication Map 
+ - TPC, Transmit Power Control
+ - TS, Traffic Stream
+ - WDS, Wireless Distribution System
+ - WOWLAN, Wake-on-Wireless LAN
+ - WPS, Wi-Fi Protected Setup
