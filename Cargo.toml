@@ -3,6 +3,10 @@ name = "nl80211"
 version = "0.1.0"
 authors = ["Erik Svensson <erik.public@gmail.com>"]
 build = "build.rs"
+description="Experiments with netlink and nl80211 in Rust"
+license="MIT"
+repository="https://github.com/blueluna/nl80211-rs"
+keywords = ["netlink", "nl80211", "80211"]
 
 [build-dependencies.netlink-buildtools]
 path = "netlink/buildtools"
@@ -16,3 +20,6 @@ path = "netlink"
 [dev-dependencies]
 mio = "0.6"
 clap = "2"
+
+[badges]
+travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
