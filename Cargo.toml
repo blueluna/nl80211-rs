@@ -9,8 +9,10 @@ path = "netlink/buildtools"
 
 [dependencies]
 libc = "0.2"
-mio = "0.6"
-clap = "2"
 
 [dependencies.netlink]
 path = "netlink"
+
+[dev-dependencies]
+mio = "0.6"
+clap = "2"
