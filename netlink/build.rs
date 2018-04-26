@@ -2,7 +2,7 @@ extern crate bindgen;
 
 use std::io::Write;
 
-use bindgen::builder;
+use bindgen::{builder, RustTarget};
 
 const KERNEL_HEADERS: &'static str = "kernel-includes.h";
 
@@ -19,7 +19,7 @@ fn generate_netlink() {
         }
     }
     {
-        let bindings = builder().layout_tests(false).header(KERNEL_HEADERS).generate().unwrap();
+        let bindings = builder().rust_target(RustTarget::Stable_1_19).layout_tests(false).header(KERNEL_HEADERS).generate().unwrap();
         bindings.write_to_file("src/kernel/netlink.rs").unwrap();
     }
     std::fs::remove_file(KERNEL_HEADERS).unwrap();
