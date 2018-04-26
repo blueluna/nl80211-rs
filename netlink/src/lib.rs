@@ -22,7 +22,7 @@ mod tests {
     #[test]
     fn route_get_link() {
         let mut socket = Socket::new(Protocol::Route).unwrap();
-        let msg = route::Message::new(route::RTM_GETLINK);
+        let msg = route::Message::new(route::FamilyId::GetLink);
         socket.send_message(&msg).unwrap();
         let _ = socket.receive_messages().unwrap();
     }
