@@ -16,3 +16,5 @@ It is also possible to initiate a scan as super user.
 ```bash
 sudo ./target/release/examples/nl80211 scan
 ```
+
+[![Build Status](https://travis-ci.org/blueluna/nl80211-rs.svg?branch=master)](https://travis-ci.org/blueluna/nl80211-rs)
