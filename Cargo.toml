@@ -16,6 +16,7 @@ netlink-buildtools = { version="0.1", path="netlink-buildtools" }
 
 [dependencies]
 libc = "0.2"
+bitflags =  "1.0"
 netlink = { version="0.1", path="netlink" }
 
 [dev-dependencies]

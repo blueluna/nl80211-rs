@@ -1,7 +1,9 @@
 # ieee 802.11 and NL80211 Abbreviations
 
  - ACL, Access Control Lists
+ - AKM, Authentication Key Management
  - BSS, Basic Service Set
+ - CCMP, Counter Mode Cipher Block Chaining Message Authentication Code Protocol, Counter Mode CBC-MAC Protocol, CCM mode protocol
  - CF, Contention Free
  - CQM, Connection Quanlity Monitor
  - DS, Direct Spectrum
@@ -19,10 +21,13 @@
  - PMKSA, Pairwise Master Key Security Assicoation
  - QBSS, QOS enhanced Basic Service Set
  - REG, Regulatory Domain
+ - RSN, Robust Security Network
  - TDLS, Tunneled Direct Link Setup
  - TIM, Traffic Indication Map 
+ - TKIP, Temporal Key Integrity Protocol
  - TPC, Transmit Power Control
  - TS, Traffic Stream
  - WDS, Wireless Distribution System
+ - WEP, Wired Equivalent Privacy
  - WOWLAN, Wake-on-Wireless LAN
  - WPS, Wi-Fi Protected Setup

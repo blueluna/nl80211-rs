@@ -159,8 +159,12 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                             nl80211::InformationElementId::ExtendedChannelSwitchAnnouncement => {
                                 if ie.data.len() == 4 {
                                     let new_channel = ie.data[2];
-                                    println!("Channel Switch: {:?} {}", ssid, new_channel);
+                                    println!("Beacon: Channel Switch: {:?} {}", ssid, new_channel);
                                 }
+                            }
+                            nl80211::InformationElementId::RobustSecurityNetwork => {
+                                let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data);
+                                println!("Beacon: {:?}", ie_rsn);
                             }
                             _ => (),
                         }
@@ -215,6 +219,10 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                         let new_channel = ie.data[2];
                                         println!("Channel Switch: {:?} {}", ssid, new_channel);
                                     }
+                                }
+                                nl80211::InformationElementId::RobustSecurityNetwork => {
+                                    let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data);
+                                    println!("{:?}", ie_rsn);
                                 }
                                 _ => (),
                             }

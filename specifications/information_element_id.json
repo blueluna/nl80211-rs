@@ -109,6 +109,12 @@
           "data_type": "bytes",
           "data_length": 0
         },
+        "MobilityDomain": {
+          "value": 54,
+          "original_name": "IE_MOBILITY_DOMAIN",
+          "data_type": "bytes",
+          "data_length": 3
+        },
         "SupportedOperatingClasses": {
           "value": 59,
           "original_name": "IE_SUPPORTED_OPERATING_CLASSES",
@@ -148,6 +154,18 @@
         "ExtendedCapabilities": {
           "value": 127,
           "original_name": "IE_EXTENDED_CAPABILITIES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Reserved133": {
+          "value": 133,
+          "original_name": "IE_RESERVED_133",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Reserved149": {
+          "value": 149,
+          "original_name": "IE_RESERVED_149",
           "data_type": "bytes",
           "data_length": 0
         },
