@@ -163,8 +163,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                 }
                             }
                             nl80211::InformationElementId::RobustSecurityNetwork => {
-                                let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data);
-                                println!("Beacon: {:?}", ie_rsn);
+                                let _ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
                             }
                             _ => (),
                         }
@@ -221,8 +220,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                     }
                                 }
                                 nl80211::InformationElementId::RobustSecurityNetwork => {
-                                    let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data);
-                                    println!("{:?}", ie_rsn);
+                                    let _ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
                                 }
                                 _ => (),
                             }
