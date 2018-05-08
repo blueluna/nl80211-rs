@@ -6,7 +6,6 @@ extern crate byteorder;
 #[macro_use] extern crate error_chain;
 
 mod errors;
-mod kernel;
 #[macro_use] mod core;
 pub mod route;
 pub mod generic;

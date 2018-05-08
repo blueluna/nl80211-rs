@@ -4,7 +4,7 @@ mod variant;
 #[macro_use] mod helpers;
 
 use errors::Result;
-use kernel;
+use self::system::Address;
 use libc;
 use std::fmt;
 use std::str;
@@ -51,16 +51,29 @@ extended_enum!(Protocol, i32,
     SMC => 21
 );
 
-const NLMSG_NOOP: u16 = kernel::NLMSG_NOOP as u16;
-const NLMSG_ERROR: u16 = kernel::NLMSG_ERROR as u16;
-const NLMSG_DONE: u16 = kernel::NLMSG_DONE as u16;
+const NLMSG_NOOP: u16 = 1;
+const NLMSG_ERROR: u16 = 2;
+const NLMSG_DONE: u16 = 3;
+// const NLMSG_OVERRUN: u16 = 4;
+
+const NETLINK_ADD_MEMBERSHIP: i32 = 1;
+// const NETLINK_DROP_MEMBERSHIP: i32 = 2;
+// const NETLINK_PKTINFO: i32 = 3;
+// const NETLINK_BROADCAST_ERROR: i32 = 4;
+// const NETLINK_NO_ENOBUFS: i32 = 5;
+// const NETLINK_RX_RING: i32 = 6;
+// const NETLINK_TX_RING: i32 = 7;
+// const NETLINK_LISTEN_ALL_NSID: i32 = 8;
+// const NETLINK_LIST_MEMBERSHIPS: i32 = 9;
+// const NETLINK_CAP_ACK: i32 = 10;
+// const NETLINK_EXT_ACK: i32 = 11;
 
 bitflags! {
     pub struct MessageFlags: u16 {
-        const REQUEST     = kernel::NLM_F_REQUEST as u16;
-        const MULTIPART   = kernel::NLM_F_MULTI as u16;
-        const ACKNOWLEDGE = kernel::NLM_F_ACK as u16;
-        const DUMP        = kernel::NLM_F_DUMP as u16;
+        const REQUEST     = 0x0001;
+        const MULTIPART   = 0x0002;
+        const ACKNOWLEDGE = 0x0004;
+        const DUMP        = 0x0100 | 0x0200;
     }
 }
 
@@ -90,7 +103,7 @@ fn align_to(len: usize, align_to: usize) -> usize
 #[inline]
 fn netlink_align(len: usize) -> usize
 {
-    align_to(len, kernel::NLMSG_ALIGNTO as usize)
+    align_to(len, 4usize)
 }
 
 #[inline]
@@ -105,6 +118,7 @@ pub trait Sendable {
     fn query_flags(&self) -> MessageFlags;
 }
 
+#[repr(C)]
 pub struct Header {
     pub length: u32,
     pub identifier: u16,
@@ -294,8 +308,8 @@ pub fn parse_attributes<R: Read + Seek>(reader: &mut R) -> Vec<Attribute>
 /// Netlink Socket can be used to communicate with the Linux kernel using the
 /// netlink protocol.
 pub struct Socket {
-    local: kernel::sockaddr_nl,
-    peer: kernel::sockaddr_nl,
+    local: Address,
+    peer: Address,
     socket: RawFd,
     sequence_next: u32,
     sequence_expected: u32,
@@ -318,20 +332,20 @@ impl Socket {
         let socket = system::netlink_socket(protocol as i32)?;
         system::set_socket_option(socket, libc::SOL_SOCKET, libc::SO_SNDBUF, 32768)?;
         system::set_socket_option(socket, libc::SOL_SOCKET, libc::SO_RCVBUF, 32768)?;
-        let mut local_addr = kernel::sockaddr_nl {
-            nl_family: libc::AF_NETLINK as u16,
-            nl_pad: 0,
-            nl_pid: 0,
-            nl_groups: groups,
+        let mut local_addr = Address {
+            family: libc::AF_NETLINK as u16,
+            _pad: 0,
+            pid: 0,
+            groups: groups,
         };
-        system::bind(socket, local_addr)?;
+        system::bind(socket, &mut local_addr)?;
         system::get_socket_address(socket, &mut local_addr)?;
         let page_size = netlink_align(system::get_page_size());
-        let peer_addr = kernel::sockaddr_nl {
-            nl_family: libc::AF_NETLINK as u16,
-            nl_pad: 0,
-            nl_pid: 0,
-            nl_groups: groups,
+        let peer_addr = Address {
+            family: libc::AF_NETLINK as u16,
+            _pad: 0,
+            pid: 0,
+            groups: groups,
         };
         Ok(Socket {
             local: local_addr,
@@ -350,18 +364,18 @@ impl Socket {
     pub fn multicast_group_subscribe(&mut self, group: u32) -> Result<()>
     {
         system::set_socket_option(self.socket, libc::SOL_NETLINK,
-            kernel::NETLINK_ADD_MEMBERSHIP as i32, group as i32)?;
+            NETLINK_ADD_MEMBERSHIP as i32, group as i32)?;
         Ok(())
     }
 
     #[cfg(not(target_env = "musl"))]
     fn message_header(&mut self, iov: &mut [libc::iovec]) -> libc::msghdr
     {
-        let addr_ptr = &mut self.peer as *mut kernel::sockaddr_nl;
+        let addr_ptr = &mut self.peer as *mut Address;
         libc::msghdr {
             msg_iovlen: iov.len(),
             msg_iov: iov.as_mut_ptr(),
-            msg_namelen: size_of::<kernel::sockaddr_nl>() as u32,
+            msg_namelen: size_of::<system::Address>() as u32,
             msg_name: addr_ptr as *mut libc::c_void,
             msg_flags: 0,
             msg_controllen: 0,
@@ -372,11 +386,11 @@ impl Socket {
     #[cfg(target_env = "musl")]
     fn message_header(&mut self, iov: &mut [libc::iovec]) -> libc::msghdr
     {
-        let addr_ptr = &mut self.peer as *mut kernel::sockaddr_nl;
+        let addr_ptr = &mut self.peer as *mut Address;
         libc::msghdr {
             msg_iovlen: iov.len() as i32,
             msg_iov: iov.as_mut_ptr(),
-            msg_namelen: size_of::<kernel::sockaddr_nl>() as u32,
+            msg_namelen: size_of::<system::Address>() as u32,
             msg_name: addr_ptr as *mut libc::c_void,
             msg_flags: 0,
             msg_controllen: 0,
@@ -389,7 +403,7 @@ impl Socket {
     {
         self.send_buffer.clear();
         let mut writer = io::Cursor::new(vec![0u8; self.page_size]);
-        let hdr_size = netlink_align(size_of::<kernel::nlmsghdr>());
+        let hdr_size = netlink_align(size_of::<Header>());
         writer.seek(SeekFrom::Start(hdr_size as u64))?;
         payload.write(&mut writer)?;
         let payload_size = writer.seek(SeekFrom::Current(0))? as usize;
@@ -399,7 +413,7 @@ impl Socket {
         let flags = payload.query_flags();
         flags.bits().write(&mut writer)?;
         self.sequence_next.write(&mut writer)?;
-        self.local.nl_pid.write(&mut writer)?;
+        self.local.pid.write(&mut writer)?;
 
         let mut iov = [
             libc::iovec {
@@ -477,7 +491,7 @@ impl Socket {
             reader.seek(SeekFrom::Start(pos as u64))?;
             let header = Header::parse(&mut reader)?;
             pos = pos + header.aligned_length();
-            if !header.check_pid(self.local.nl_pid) {
+            if !header.check_pid(self.local.pid) {
                 return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid PID").into());
             }
             if !header.check_sequence(self.sequence_expected) {
