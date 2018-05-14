@@ -145,6 +145,12 @@
           "data_type": "bytes",
           "data_length": 0
         },
+        "MultipleBSSID": {
+          "value": 71,
+          "original_name": "IE_MULTIPLE_BSSID",
+          "data_type": "bytes",
+          "data_length": 1
+        },
         "OverlappingBssScanParameters": {
           "value": 74,
           "original_name": "IE_OVERLAPPING_BSS_SCAN_PARAMETERS",
