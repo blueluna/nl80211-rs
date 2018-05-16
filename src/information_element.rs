@@ -1,34 +1,36 @@
 
 use std::io::Read;
 use std::io;
+use std::fmt;
 use netlink::{NativeRead, Error};
 
-pub struct InformationElement
+/// Raw Information Element data
+pub struct RawInformationElement
 {
     pub identifier: u8,
     pub data: Vec<u8>,
 }
 
-impl InformationElement {
-    pub fn parse<R: Read>(reader: &mut R) -> Result<InformationElement, Error> {
+impl RawInformationElement {
+    pub fn parse<R: Read>(reader: &mut R) -> Result<RawInformationElement, Error> {
         let identifier = u8::read(reader)?;
         let length = u8::read(reader)? as usize;
         let mut data = vec![0u8; length];
         reader.read_exact(&mut data)?;
-        Ok(InformationElement { identifier: identifier, data: data })
+        Ok(RawInformationElement { identifier: identifier, data: data })
     }
 }
 
 pub struct InformationElements
 {
-    pub elements: Vec<InformationElement>,
+    pub elements: Vec<RawInformationElement>,
 }
 
 impl InformationElements {
     pub fn parse<R: Read>(reader: &mut R) -> InformationElements {
         let mut elements = vec![];
         loop {
-            match InformationElement::parse(reader) {
+            match RawInformationElement::parse(reader) {
                 Ok(ie) => elements.push(ie),
                 Err(_) => break,
             }
@@ -39,14 +41,14 @@ impl InformationElements {
     }
 }
 
-#[derive(Debug)]
-enum CipherSuite {
+#[derive(Debug, PartialEq)]
+pub enum CipherSuite {
     UseGroupCipherSuite,
-    WEP40, // 
-    TKIP, // Temporal Key Integrity Protocol
-    CCMP,
-    WEP104,
-    BIP,
+    WiredEquivalentPrivacy40,
+    TemporalKeyIntegrityProtocol,
+    CounterModeCbcMacProtocol,
+    WiredEquivalentPrivacy104,
+    BroadcastIntegrityProtocol,
     GroupAddressedTrafficNotAllowed,
     Reserved(u8),
     Vendor(u32),
@@ -58,11 +60,11 @@ impl From<u32> for CipherSuite {
             let c = (v >> 24) as u8;
             match c {
                 0 => CipherSuite::UseGroupCipherSuite,
-                1 => CipherSuite::WEP40,
-                2 => CipherSuite::TKIP,
-                4 => CipherSuite::CCMP,
-                5 => CipherSuite::WEP104,
-                6 => CipherSuite::BIP,
+                1 => CipherSuite::WiredEquivalentPrivacy40,
+                2 => CipherSuite::TemporalKeyIntegrityProtocol,
+                4 => CipherSuite::CounterModeCbcMacProtocol,
+                5 => CipherSuite::WiredEquivalentPrivacy104,
+                6 => CipherSuite::BroadcastIntegrityProtocol,
                 7 => CipherSuite::GroupAddressedTrafficNotAllowed,
                 _ => CipherSuite::Reserved(c),
             }
@@ -77,11 +79,11 @@ impl From<CipherSuite> for u32 {
     fn from(v: CipherSuite) -> Self {
         match v {
             CipherSuite::UseGroupCipherSuite => 0x00ac0f00,
-            CipherSuite::WEP40 => 0x01ac0f00,
-            CipherSuite::TKIP => 0x02ac0f00,
-            CipherSuite::CCMP => 0x04ac0f00,
-            CipherSuite::WEP104 => 0x05ac0f00,
-            CipherSuite::BIP => 0x06ac0f00,
+            CipherSuite::WiredEquivalentPrivacy40 => 0x01ac0f00,
+            CipherSuite::TemporalKeyIntegrityProtocol => 0x02ac0f00,
+            CipherSuite::CounterModeCbcMacProtocol => 0x04ac0f00,
+            CipherSuite::WiredEquivalentPrivacy104 => 0x05ac0f00,
+            CipherSuite::BroadcastIntegrityProtocol => 0x06ac0f00,
             CipherSuite::GroupAddressedTrafficNotAllowed => 0x07ac0f00,
             CipherSuite::Reserved(v) => 0x00ac0f00 | (v as u32) << 24,
             CipherSuite::Vendor(v) => v,
@@ -89,17 +91,33 @@ impl From<CipherSuite> for u32 {
     }
 }
 
-#[derive(Debug)]
-enum AuthenticationKeyManagement {
-    PMKSA,
-    PSK, 
-    FT8021X,
-    FTPSK,
-    PMSKASHA256,
-    PSKSHA256,
-    TDLS,
-    SAE,
-    FTSAE,
+impl fmt::Display for CipherSuite {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CipherSuite::UseGroupCipherSuite => write!(f, "GroupCipher"),
+            CipherSuite::WiredEquivalentPrivacy40 => write!(f, "WEP40"),
+            CipherSuite::TemporalKeyIntegrityProtocol => write!(f, "TKIP"),
+            CipherSuite::CounterModeCbcMacProtocol => write!(f, "CCMP"),
+            CipherSuite::WiredEquivalentPrivacy104 => write!(f, "WEP104"),
+            CipherSuite::BroadcastIntegrityProtocol => write!(f, "BIP"),
+            CipherSuite::GroupAddressedTrafficNotAllowed => write!(f, "GroupAddressedTrafficNotAllowed"),
+            CipherSuite::Reserved(v) => write!(f, "Reserved {:x}", v),
+            CipherSuite::Vendor(v) => write!(f, "Vendor {:x}", v),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum AuthenticationKeyManagement {
+    PairwiseMasterKeySecurityAssociation,
+    PreSharedKey,
+    FastTransitionPMKSA,
+    FastTransitionPreSharedKey,
+    PMKSASha256,
+    PreSharedKeySha256,
+    TunneledDirectLinkSetup,
+    SimultaneousAuthenticationOfEquals,
+    FastTransitionSAE,
     Reserved(u8),
     Vendor(u32),
 }
@@ -109,15 +127,15 @@ impl From<u32> for AuthenticationKeyManagement {
         if v & 0x00ffffff == 0x00ac0f00 {
             let c = (v >> 24) as u8;
             match c {
-                1 => AuthenticationKeyManagement::PMKSA,
-                2 => AuthenticationKeyManagement::PSK,
-                3 => AuthenticationKeyManagement::FT8021X,
-                4 => AuthenticationKeyManagement::FTPSK,
-                5 => AuthenticationKeyManagement::PMSKASHA256,
-                6 => AuthenticationKeyManagement::PSKSHA256,
-                7 => AuthenticationKeyManagement::TDLS,
-                8 => AuthenticationKeyManagement::SAE,
-                9 => AuthenticationKeyManagement::FTSAE,
+                1 => AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation,
+                2 => AuthenticationKeyManagement::PreSharedKey,
+                3 => AuthenticationKeyManagement::FastTransitionPMKSA,
+                4 => AuthenticationKeyManagement::FastTransitionPreSharedKey,
+                5 => AuthenticationKeyManagement::PMKSASha256,
+                6 => AuthenticationKeyManagement::PreSharedKeySha256,
+                7 => AuthenticationKeyManagement::TunneledDirectLinkSetup,
+                8 => AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals,
+                9 => AuthenticationKeyManagement::FastTransitionSAE,
                 _ => AuthenticationKeyManagement::Reserved(c),
             }
         }
@@ -130,21 +148,38 @@ impl From<u32> for AuthenticationKeyManagement {
 impl From<AuthenticationKeyManagement> for u32 {
     fn from(v: AuthenticationKeyManagement) -> Self {
         match v {
-            AuthenticationKeyManagement::PMKSA => 0x01ac0f00,
-            AuthenticationKeyManagement::PSK => 0x02ac0f00,
-            AuthenticationKeyManagement::FT8021X => 0x03ac0f00,
-            AuthenticationKeyManagement::FTPSK => 0x04ac0f00,
-            AuthenticationKeyManagement::PMSKASHA256 => 0x05ac0f00,
-            AuthenticationKeyManagement::PSKSHA256 => 0x06ac0f00,
-            AuthenticationKeyManagement::TDLS => 0x07ac0f00,
-            AuthenticationKeyManagement::SAE => 0x08ac0f00,
-            AuthenticationKeyManagement::FTSAE => 0x09ac0f00,
+            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => 0x01ac0f00,
+            AuthenticationKeyManagement::PreSharedKey => 0x02ac0f00,
+            AuthenticationKeyManagement::FastTransitionPMKSA => 0x03ac0f00,
+            AuthenticationKeyManagement::FastTransitionPreSharedKey => 0x04ac0f00,
+            AuthenticationKeyManagement::PMKSASha256 => 0x05ac0f00,
+            AuthenticationKeyManagement::PreSharedKeySha256 => 0x06ac0f00,
+            AuthenticationKeyManagement::TunneledDirectLinkSetup => 0x07ac0f00,
+            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => 0x08ac0f00,
+            AuthenticationKeyManagement::FastTransitionSAE => 0x09ac0f00,
             AuthenticationKeyManagement::Reserved(v) => 0x00ac0f00 | (v as u32) << 24,
             AuthenticationKeyManagement::Vendor(v) => v,
         }
     }
 }
 
+impl fmt::Display for AuthenticationKeyManagement {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => write!(f, "PMKSA"),
+            AuthenticationKeyManagement::PreSharedKey => write!(f, "PSK"),
+            AuthenticationKeyManagement::FastTransitionPMKSA => write!(f, "FTPMKSA"),
+            AuthenticationKeyManagement::FastTransitionPreSharedKey => write!(f, "FTPSK"),
+            AuthenticationKeyManagement::PMKSASha256 => write!(f, "PMKSA_SHA256"),
+            AuthenticationKeyManagement::PreSharedKeySha256 => write!(f, "PSK_SHA256"),
+            AuthenticationKeyManagement::TunneledDirectLinkSetup => write!(f, "TDLS"),
+            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => write!(f, "SAE"),
+            AuthenticationKeyManagement::FastTransitionSAE => write!(f, "FTSAE"),
+            AuthenticationKeyManagement::Reserved(v) => write!(f, "Reserved {:x}", v),
+            AuthenticationKeyManagement::Vendor(v) => write!(f, "Vendor {:x}", v),
+        }
+    }
+}
 
 bitflags! {
     pub struct RsnCapabilities: u16 {
@@ -164,8 +199,8 @@ bitflags! {
 pub struct RobustSecurityNetwork {
     version: u16,
     cipher_suite: CipherSuite,
-    ciphers: Vec<CipherSuite>,
-    akms: Vec<AuthenticationKeyManagement>,
+    pub ciphers: Vec<CipherSuite>,
+    pub akms: Vec<AuthenticationKeyManagement>,
     capabilities: RsnCapabilities,
     ptksa_counters: u8,
     gtksa_counters: u8,
@@ -213,6 +248,6 @@ impl RobustSecurityNetwork {
                 gtksa_counters: gtksa_counters,
             });
         }
-        panic!("Bad Data");
+	return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into());
     }
 }

@@ -5,7 +5,7 @@ extern crate clap;
 extern crate nl80211;
 
 use std::io;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::fmt;
 use std::convert::{From};
 use std::os::unix::io::AsRawFd;
@@ -17,7 +17,7 @@ use netlink::{HardwareAddress, Socket, Attribute, Protocol, Message, MessageMode
 use netlink::generic;
 use netlink::ConvertFrom;
 
-use nl80211::{InformationElements, WirelessInterface};
+use nl80211::{InformationElements, WirelessInterface, CipherSuite, AuthenticationKeyManagement};
 
 use clap::{Arg, App, SubCommand};
 
@@ -39,6 +39,21 @@ fn scan_trigger(socket: &mut Socket, wireless_device: &WirelessInterface) -> Res
     Ok(())
 }
 
+fn start_schedule_scan(socket: &mut Socket, wireless_device: &WirelessInterface) -> Result<(), Error>
+{
+    {
+        let msg = wireless_device.prepare_message(nl80211::Command::AbortScan, MessageMode::None);
+        socket.send_message(&msg)?;
+    }
+    println!("Schedule Scan for {}", wireless_device.interface_name);
+    let mut msg = wireless_device.prepare_message(nl80211::Command::StartScheduledScan,
+        MessageMode::None);
+    let interval = 1u32;
+    msg.append_attribute(Attribute::new(nl80211::Attribute::SchedScanInterval, interval));
+    socket.send_message(&msg)?;
+    Ok(())
+}
+
 enum AccessPointStatus {
     None,
     Authenticated,
@@ -55,6 +70,8 @@ struct AccessPoint {
     channel_2: u8,
     channel_width: u32,
     status: AccessPointStatus,
+    ciphers: Vec<CipherSuite>,
+    akms: Vec<AuthenticationKeyManagement>,
 }
 
 impl AccessPoint {
@@ -80,14 +97,14 @@ impl AccessPoint {
         let num_bars = signal + 100.0;
         let num_bars = if num_bars < 0.0 { 0.0 } else if num_bars > 100.0 { 100.0 } else { num_bars };
         let num_bars = (num_bars / 10.0).round() as usize;
-        if num_bars > 8 { 8 } else { num_bars }
+        if num_bars > 7 { 7 } else { num_bars }
     }
 }
 
 impl fmt::Display for AccessPoint {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let signal = self.signal as f64 / 100.0;
-        let num_bars = 8u8 - self.num_bars() as u8;
+        let num_bars = 7u8 - self.num_bars() as u8;
         let octet = 0x88 + num_bars;
         let components = [0xE2, 0x96, octet];
         let bar_char = std::str::from_utf8(&components).unwrap();
@@ -97,9 +114,9 @@ impl fmt::Display for AccessPoint {
             AccessPointStatus::Associated => "⮂",
             AccessPointStatus::Joined => "⮈",
         };
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:3.0} {}",
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:3.0} {} {:?} {:?}",
             self.bssid, self.ssid, status_char, self.frequency, self.channel(),
-            self.channel_1, self.channel_2, self.channel_width, signal, bar_char)
+            self.channel_1, self.channel_2, self.channel_width, signal, bar_char, self.ciphers, self.akms)
     }
 }
 
@@ -115,6 +132,9 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut channel_width = 0;
     let mut status = AccessPointStatus::None;
     let attrs = netlink::parse_attributes(&mut io::Cursor::new(data));
+    let mut ciphers = vec![];
+    let mut akms = vec![];
+
     for attr in attrs {
         let id = BssAttribute::from(attr.identifier);
         match id {
@@ -220,7 +240,13 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                     }
                                 }
                                 nl80211::InformationElementId::RobustSecurityNetwork => {
-                                    let _ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
+                                    let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
+				    for c in ie_rsn.ciphers {
+				    	ciphers.push(c);
+				    }
+				    for a in ie_rsn.akms {
+				    	akms.push(a);
+				    }
                                 }
                                 _ => (),
                             }
@@ -247,6 +273,8 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             channel_2: channel_2,
             channel_width: channel_width,
             status: status,
+	    ciphers: ciphers,
+	    akms: akms,
         });
     }
     Err(io::Error::new(io::ErrorKind::NotFound, "Failed").into())
@@ -272,6 +300,18 @@ fn parse_scan_result(message: &generic::Message) -> Result<AccessPoint, Error>
         }
     }
     Err(io::Error::new(io::ErrorKind::NotFound, "Failed").into())
+}
+
+fn print_scan_results(access_points: &mut Vec<AccessPoint>) -> Result<(), Error>
+{
+    let out = io::stdout();
+    let mut handle = out.lock();
+    handle.write(b"Scan Results ---\n")?;
+    access_points.sort_by(|a, b| b.signal.cmp(&a.signal).then(a.ssid.cmp(&b.ssid)));
+    for ap in access_points {
+        handle.write_fmt(format_args!("{}\n", ap))?;
+    }
+    Ok(())
 }
 
 fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface) -> Result<(), Error>
@@ -305,11 +345,7 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
             }
         }
     }
-    aps.sort_by(|a,b| { b.signal.cmp(&a.signal).then(a.ssid.cmp(&b.ssid)) });
-    for ap in aps.iter() {
-        println!("{}", ap);
-    }
-    Ok(())
+    print_scan_results(&mut aps)
 }
 
 #[derive(PartialEq)]
@@ -510,10 +546,7 @@ impl Monitor {
                 },
                 Message::Done => {
                     if self.control_command == nl80211::Command::NewScanResults {
-                        self.scan_results.sort_by(|a,b| { b.signal.cmp(&a.signal).then(a.ssid.cmp(&b.ssid)) });
-                        for ap in self.scan_results.iter() {
-                            println!("{}", ap);
-                        }
+      		        print_scan_results(&mut self.scan_results)?;
                     }
                     else {
                         println!("DONE {:?}", self.control_command);
@@ -597,7 +630,8 @@ fn main() {
                     dev.disconnect(&mut control_socket).unwrap();
                 }
                 UserCommand::Scan => {
-                    scan_trigger(&mut control_socket, &dev).unwrap();
+                    // scan_trigger(&mut control_socket, &dev).unwrap();
+		    start_schedule_scan(&mut control_socket, &dev).unwrap();
                 }
                 UserCommand::ScanResults => {
                     scan_request_result(&mut control_socket, &dev).unwrap();

@@ -163,15 +163,27 @@
           "data_type": "bytes",
           "data_length": 0
         },
-        "Reserved133": {
+        "Reserved133CiscoCompatibleExtenstions1": {
           "value": 133,
           "original_name": "IE_RESERVED_133",
           "data_type": "bytes",
           "data_length": 0
         },
-        "Reserved149": {
+        "Reserved136CiscoCompatibleExtenstions2": {
+          "value": 136,
+          "original_name": "IE_RESERVED_136",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Reserved149CiscoCompatibleExtenstions3": {
           "value": 149,
           "original_name": "IE_RESERVED_149",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Reserved150CiscoCompatibleExtenstions": {
+          "value": 150,
+          "original_name": "IE_RESERVED_150",
           "data_type": "bytes",
           "data_length": 0
         },
