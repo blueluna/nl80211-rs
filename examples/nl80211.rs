@@ -30,6 +30,13 @@ fn show_slice(slice: &[u8])
     print!("\n");
 }
 
+fn join_to_string<T>(values: T, separator: &str) -> String
+    where T: IntoIterator,
+          T::Item: ToString,
+{
+    values.into_iter().map(|v| v.to_string()).collect::<Vec<_>>().join(separator)
+}
+
 fn scan_trigger(socket: &mut Socket, wireless_device: &WirelessInterface) -> Result<(), Error>
 {
     println!("Trigger Scan for {}", wireless_device.interface_name);
@@ -110,13 +117,15 @@ impl fmt::Display for AccessPoint {
         let bar_char = std::str::from_utf8(&components).unwrap();
         let status_char = match self.status {
             AccessPointStatus::None => " ",
-            AccessPointStatus::Authenticated => "🔒",
+            AccessPointStatus::Authenticated => "⇹",
             AccessPointStatus::Associated => "⮂",
-            AccessPointStatus::Joined => "⮈",
+            AccessPointStatus::Joined => "→",
         };
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:3.0} {} {:?} {:?}",
+	let akms = join_to_string(&self.akms, " ");
+	let ciphers = join_to_string(&self.ciphers, " ");
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:3.0} {} {}-{}",
             self.bssid, self.ssid, status_char, self.frequency, self.channel(),
-            self.channel_1, self.channel_2, self.channel_width, signal, bar_char, self.ciphers, self.akms)
+            self.channel_1, self.channel_2, self.channel_width, signal, bar_char, akms, ciphers)
     }
 }
 
