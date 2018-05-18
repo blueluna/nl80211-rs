@@ -37,30 +37,6 @@ fn join_to_string<T>(values: T, separator: &str) -> String
     values.into_iter().map(|v| v.to_string()).collect::<Vec<_>>().join(separator)
 }
 
-fn scan_trigger(socket: &mut Socket, wireless_device: &WirelessInterface) -> Result<(), Error>
-{
-    println!("Trigger Scan for {}", wireless_device.interface_name);
-    let msg = wireless_device.prepare_message(nl80211::Command::TriggerScan,
-        MessageMode::None);
-    socket.send_message(&msg)?;
-    Ok(())
-}
-
-fn start_schedule_scan(socket: &mut Socket, wireless_device: &WirelessInterface) -> Result<(), Error>
-{
-    {
-        let msg = wireless_device.prepare_message(nl80211::Command::AbortScan, MessageMode::None);
-        socket.send_message(&msg)?;
-    }
-    println!("Schedule Scan for {}", wireless_device.interface_name);
-    let mut msg = wireless_device.prepare_message(nl80211::Command::StartScheduledScan,
-        MessageMode::None);
-    let interval = 1u32;
-    msg.append_attribute(Attribute::new(nl80211::Attribute::SchedScanInterval, interval));
-    socket.send_message(&msg)?;
-    Ok(())
-}
-
 enum AccessPointStatus {
     None,
     Authenticated,
@@ -555,7 +531,7 @@ impl Monitor {
                 },
                 Message::Done => {
                     if self.control_command == nl80211::Command::NewScanResults {
-      		        print_scan_results(&mut self.scan_results)?;
+      		            print_scan_results(&mut self.scan_results)?;
                     }
                     else {
                         println!("DONE {:?}", self.control_command);
@@ -571,6 +547,7 @@ impl Monitor {
 #[derive(PartialEq, Debug)]
 enum UserCommand {
     Scan,
+    ScheduleScan,
     ScanResults,
     Disconnect,
     Monitor,
@@ -580,6 +557,7 @@ impl UserCommand {
     fn requires_root(&self) -> bool {
         match *self {
             UserCommand::Scan => true,
+            UserCommand::ScheduleScan => true,
             UserCommand::ScanResults => false,
             UserCommand::Disconnect => true,
             UserCommand::Monitor => false,
@@ -593,7 +571,8 @@ fn main() {
         .author("Erik Svensson <erik.public@gmail.com>")
         .arg(Arg::with_name("interface").long("interface").short("i").takes_value(true))
         .subcommand(SubCommand::with_name("scan"))
-        .subcommand(SubCommand::with_name("scan_results"))
+        .subcommand(SubCommand::with_name("schedule-scan"))
+        .subcommand(SubCommand::with_name("scan-results"))
         .subcommand(SubCommand::with_name("disconnect"))
         .get_matches();
 
@@ -604,7 +583,8 @@ fn main() {
     let user_command = match matches.subcommand() {
         ("disconnect", _) => { UserCommand::Disconnect },
         ("scan", _) => { UserCommand::Scan },
-        ("scan_results", _) => { UserCommand::ScanResults },
+        ("scan-results", _) => { UserCommand::ScanResults },
+        ("schedule-scan", _) => { UserCommand::ScheduleScan },
         _ => { UserCommand::Monitor },
     };
 
@@ -615,6 +595,7 @@ fn main() {
     let mut control_socket = Socket::new(Protocol::Generic).unwrap();
     let family = generic::get_generic_family(&mut control_socket, "nl80211").unwrap();
     let devices = nl80211::get_wireless_interfaces(&mut control_socket, family.id).unwrap();
+    // nl80211::get_wireless_phys(&mut control_socket, family.id).unwrap();
     if devices.is_empty() {
         println!("No wireless devices found.");
     }
@@ -639,8 +620,16 @@ fn main() {
                     dev.disconnect(&mut control_socket).unwrap();
                 }
                 UserCommand::Scan => {
-                    // scan_trigger(&mut control_socket, &dev).unwrap();
-		    start_schedule_scan(&mut control_socket, &dev).unwrap();
+                    dev.trigger_scan(&mut control_socket).unwrap();
+                }
+                UserCommand::ScheduleScan => {
+                    println!("~~~ Stop Scheduled Scan");
+                    match dev.stop_interval_scan(&mut control_socket) {
+                        Ok(_) => (),
+                        Err(err) => println!("{}", err),
+                    }
+                    println!("~~~ Start Scheduled Scan");
+                    dev.start_interval_scan(&mut control_socket, 1000).unwrap();
                 }
                 UserCommand::ScanResults => {
                     scan_request_result(&mut control_socket, &dev).unwrap();

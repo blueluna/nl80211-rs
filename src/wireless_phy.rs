@@ -43,6 +43,18 @@ pub fn get_wireless_phys(socket: &mut Socket, family_id: u16) -> Result<(), Erro
                                                     println!("    {:?} {}", sa_id, sa.len());
                                                 }
                                             }
+                                            Attribute::MaxScanPlanInterval => {
+                                                println!("Maximum Scan Plan Interval {}", attr.as_u32()?);
+                                            }
+                                            Attribute::MaxNumSchedScanPlans => {
+                                                println!("Maximum Scan Plans {}", attr.as_u32()?);
+                                            }
+                                            Attribute::MaxScanPlanIterations => {
+                                                println!("Maximum Scan Plan Iterations {}", attr.as_u32()?);
+                                            }
+                                            Attribute::SchedScanMaxReqs => {
+                                                println!("Maximum Sheduled Scan Requests {}", attr.as_u32()?);
+                                            }
                                             _ => {
                                                 println!("  {:?} {}", id, attr.len());
                                             }

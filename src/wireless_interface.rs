@@ -137,6 +137,113 @@ impl WirelessInterface {
         tx_msg
     }
 
+    pub fn trigger_scan(&self, socket: &mut Socket) -> Result<(), Error>
+    {
+        let msg = self.prepare_message(Command::TriggerScan,
+            MessageMode::Acknowledge);
+        socket.send_message(&msg)?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        println!("Data, {}", m.header);
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn abort_scan(&self, socket: &mut Socket) -> Result<(), Error>
+    {
+        let msg = self.prepare_message(Command::AbortScan,
+            MessageMode::Acknowledge);
+        socket.send_message(&msg)?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        println!("Data, {}", m.header);
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn start_interval_scan(&self, socket: &mut Socket, interval: u32) -> Result<(), Error>
+    {
+        let mut msg = self.prepare_message(Command::StartScheduledScan,
+            MessageMode::Acknowledge);
+        msg.append_attribute(Attribute::new(attributes::Attribute::SchedScanInterval, interval));
+        socket.send_message(&msg)?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        println!("Data, {}", m.header);
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn stop_interval_scan(&self, socket: &mut Socket) -> Result<(), Error>
+    {
+        socket.send_message(&self.prepare_message(Command::StopScheduledScan, MessageMode::None))?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        println!("Data, {}", m.header);
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn disconnect(&self, socket: &mut Socket) -> Result<(), Error>
     {
         socket.send_message(&self.prepare_device_message(Command::Disconnect, MessageMode::Acknowledge))?;
