@@ -1,8 +1,8 @@
-extern crate netlink_buildtools;
+extern crate nl80211_buildtools;
 
 use std::fs::File;
 
-use netlink_buildtools::Specification;
+use nl80211_buildtools::Specification;
 
 fn main() {
     let file = File::open("specifications/nl80211_commands.json").unwrap();

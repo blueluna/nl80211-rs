@@ -8,16 +8,13 @@ license="MIT"
 repository="https://github.com/blueluna/nl80211-rs"
 keywords = ["netlink", "nl80211", "80211"]
 
-[workspace]
-members = ["netlink-buildtools", "netlink"]
-
 [build-dependencies]
-netlink-buildtools = { version="0.1", path="netlink-buildtools" }
+nl80211-buildtools = { git = "https://github.com/blueluna/nl80211-buildtools", branch = "master" }
 
 [dependencies]
 libc = "0.2"
 bitflags =  "1.0"
-netlink = { version="0.1", path="netlink" }
+netlink = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
 mio = "0.6"
