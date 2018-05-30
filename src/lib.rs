@@ -1,9 +1,9 @@
 
-//! # Information Elements
+//! ## Information Elements
 //!
 //! Somewhat structured data with 802.11 information data.
 //!
-//! ## References
+//! ### References
 //!
 //! * 802.11-2012 standard
 //! * Wireshark 802.11 dissector, <https://raw.githubusercontent.com/wireshark/wireshark/master/epan/dissectors/packet-ieee80211.c>

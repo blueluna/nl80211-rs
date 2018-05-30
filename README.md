@@ -1,4 +1,4 @@
-# Experiments with netlink and nl80211 in Rust
+# Experiments with nl80211 in Rust
 
 Licensed under the MIT license.
 

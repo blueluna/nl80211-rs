@@ -549,6 +549,7 @@ enum UserCommand {
     Scan,
     ScheduleScan,
     ScanResults,
+    Survey,
     Disconnect,
     Monitor,
 }
@@ -559,6 +560,7 @@ impl UserCommand {
             UserCommand::Scan => true,
             UserCommand::ScheduleScan => true,
             UserCommand::ScanResults => false,
+            UserCommand::Survey => false,
             UserCommand::Disconnect => true,
             UserCommand::Monitor => false,
         }
@@ -574,6 +576,7 @@ fn main() {
         .subcommand(SubCommand::with_name("schedule-scan"))
         .subcommand(SubCommand::with_name("scan-results"))
         .subcommand(SubCommand::with_name("disconnect"))
+        .subcommand(SubCommand::with_name("survey"))
         .get_matches();
 
     let uid = unsafe { libc::getuid() };
@@ -585,6 +588,7 @@ fn main() {
         ("scan", _) => { UserCommand::Scan },
         ("scan-results", _) => { UserCommand::ScanResults },
         ("schedule-scan", _) => { UserCommand::ScheduleScan },
+        ("survey", _) => { UserCommand::Survey },
         _ => { UserCommand::Monitor },
     };
 
@@ -595,7 +599,6 @@ fn main() {
     let mut control_socket = Socket::new(Protocol::Generic).unwrap();
     let family = generic::get_generic_family(&mut control_socket, "nl80211").unwrap();
     let devices = nl80211::get_wireless_interfaces(&mut control_socket, family.id).unwrap();
-    // nl80211::get_wireless_phys(&mut control_socket, family.id).unwrap();
     if devices.is_empty() {
         println!("No wireless devices found.");
     }
@@ -633,6 +636,9 @@ fn main() {
                 }
                 UserCommand::ScanResults => {
                     scan_request_result(&mut control_socket, &dev).unwrap();
+                }
+                UserCommand::Survey => {
+                    dev.get_survey(&mut control_socket).unwrap();
                 }
                 UserCommand::Monitor => {
                     let mut monitor = Monitor::new(family).unwrap();

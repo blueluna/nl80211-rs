@@ -244,9 +244,37 @@ impl WirelessInterface {
         Ok(())
     }
 
+    pub fn get_survey(&self, socket: &mut Socket) -> Result<(), Error>
+    {
+        let msg = self.prepare_message(Command::GetSurvey,
+            MessageMode::Dump);
+        socket.send_message(&msg)?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        println!("Data, {}", m.header);
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn disconnect(&self, socket: &mut Socket) -> Result<(), Error>
     {
-        socket.send_message(&self.prepare_device_message(Command::Disconnect, MessageMode::Acknowledge))?;
+        socket.send_message(&self.prepare_device_message(Command::Disconnect,
+            MessageMode::Acknowledge))?;
         loop {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
