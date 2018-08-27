@@ -2,8 +2,10 @@
 
  - ACL, Access Control Lists
  - AKM, Authentication Key Management
+ - BIP, Broadcast/Multicast Integrity Protocol
  - BSS, Basic Service Set
- - CCMP, Counter Mode Cipher Block Chaining Message Authentication Code Protocol, Counter Mode CBC-MAC Protocol, CCM mode protocol
+ - CCMP, Counter Mode Cipher Block Chaining Message Authentication Code
+         Protocol, Counter Mode CBC-MAC Protocol, CCM mode protocol
  - CF, Contention Free
  - CQM, Connection Quanlity Monitor
  - DS, Direct Spectrum
