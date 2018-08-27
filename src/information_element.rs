@@ -185,13 +185,31 @@ bitflags! {
     pub struct RsnCapabilities: u16 {
         const PREAUTHENTICATION = 0x0001;
         const NO_PAIRWISE = 0x0002;
-        const MPF_REQUIRED = 0x0040;
-        const MPF_CAPABLE = 0x0080;
+        const PMF_REQUIRED = 0x0040;
+        const PMF_CAPABLE = 0x0080;
         const PEER_KEY_ENABLED = 0x0200;
         const SPP_AMSDU_CAPABLE = 0x0400;
         const SPP_AMSDU_REQUIRED = 0x0800;
         const PBAC = 0x1000;
         const EXTENDED_KEY_ID = 0x2000;
+    }
+}
+
+
+#[derive(Debug, PartialEq)]
+pub enum ProtectedManagementFramesMode {
+    Disabled,
+    Capable,
+    Required,
+}
+
+impl fmt::Display for ProtectedManagementFramesMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ProtectedManagementFramesMode::Disabled => write!(f, "Disabled"),
+            ProtectedManagementFramesMode::Capable => write!(f, "Capable"),
+            ProtectedManagementFramesMode::Required => write!(f, "Required"),
+        }
     }
 }
 
@@ -248,6 +266,17 @@ impl RobustSecurityNetwork {
                 gtksa_counters: gtksa_counters,
             });
         }
-	return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into());
+	    return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into());
+    }
+
+    pub fn pmf_mode(&self) -> ProtectedManagementFramesMode
+    {
+        if self.capabilities.intersects(RsnCapabilities::PMF_REQUIRED) {
+            return ProtectedManagementFramesMode::Required;
+        }
+        else if self.capabilities.intersects(RsnCapabilities::PMF_CAPABLE) {
+            return ProtectedManagementFramesMode::Capable;
+        }
+        ProtectedManagementFramesMode::Disabled
     }
 }

@@ -17,7 +17,8 @@ use netlink::{HardwareAddress, Socket, Attribute, Protocol, Message, MessageMode
 use netlink::generic;
 use netlink::ConvertFrom;
 
-use nl80211::{InformationElements, WirelessInterface, CipherSuite, AuthenticationKeyManagement};
+use nl80211::{InformationElements, WirelessInterface, CipherSuite,
+    AuthenticationKeyManagement, ProtectedManagementFramesMode};
 
 use clap::{Arg, App, SubCommand};
 
@@ -55,6 +56,7 @@ struct AccessPoint {
     status: AccessPointStatus,
     ciphers: Vec<CipherSuite>,
     akms: Vec<AuthenticationKeyManagement>,
+    pmf: ProtectedManagementFramesMode,
 }
 
 impl AccessPoint {
@@ -99,9 +101,10 @@ impl fmt::Display for AccessPoint {
         };
 	let akms = join_to_string(&self.akms, " ");
 	let ciphers = join_to_string(&self.ciphers, " ");
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:3.0} {} {}-{}",
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:4.0} {} {:8} {}-{}",
             self.bssid, self.ssid, status_char, self.frequency, self.channel(),
-            self.channel_1, self.channel_2, self.channel_width, signal, bar_char, akms, ciphers)
+            self.channel_1, self.channel_2, self.channel_width, signal,
+            bar_char, self.pmf, akms, ciphers)
     }
 }
 
@@ -119,6 +122,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let attrs = netlink::parse_attributes(&mut io::Cursor::new(data));
     let mut ciphers = vec![];
     let mut akms = vec![];
+    let mut pmf = ProtectedManagementFramesMode::Disabled;
 
     for attr in attrs {
         let id = BssAttribute::from(attr.identifier);
@@ -226,12 +230,13 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                 }
                                 nl80211::InformationElementId::RobustSecurityNetwork => {
                                     let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
-				    for c in ie_rsn.ciphers {
-				    	ciphers.push(c);
-				    }
-				    for a in ie_rsn.akms {
-				    	akms.push(a);
-				    }
+                                    pmf = ie_rsn.pmf_mode();
+                                    for c in ie_rsn.ciphers {
+                                        ciphers.push(c);
+                                    }
+                                    for a in ie_rsn.akms {
+                                        akms.push(a);
+                                    }
                                 }
                                 _ => (),
                             }
@@ -258,8 +263,9 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             channel_2: channel_2,
             channel_width: channel_width,
             status: status,
-	    ciphers: ciphers,
-	    akms: akms,
+            ciphers: ciphers,
+            akms: akms,
+            pmf: pmf,
         });
     }
     Err(io::Error::new(io::ErrorKind::NotFound, "Failed").into())

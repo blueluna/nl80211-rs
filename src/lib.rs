@@ -23,7 +23,9 @@ mod wireless_phy;
 
 pub use commands::Command;
 pub use attributes::{Attribute, BssAttribute};
-pub use information_element::{RawInformationElement, InformationElements, RobustSecurityNetwork, CipherSuite, AuthenticationKeyManagement};
+pub use information_element::{RawInformationElement, InformationElements,
+    RobustSecurityNetwork, CipherSuite, AuthenticationKeyManagement,
+    ProtectedManagementFramesMode};
 pub use information_element_ids::InformationElementId;
 pub use wireless_interface::{WirelessInterface, get_wireless_interfaces};
 pub use wireless_phy::get_wireless_phys;
