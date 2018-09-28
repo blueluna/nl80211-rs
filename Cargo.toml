@@ -18,7 +18,12 @@ netlink = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
 mio = "0.6"
+encoding = "0.2"
 clap = "2"
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"

@@ -3,6 +3,7 @@ extern crate netlink;
 extern crate mio;
 extern crate clap;
 extern crate nl80211;
+extern crate encoding;
 
 use std::io;
 use std::io::{Read, Write};
@@ -22,6 +23,9 @@ use nl80211::{InformationElements, WirelessInterface, CipherSuite,
 
 use clap::{Arg, App, SubCommand};
 
+use encoding::{Encoding, DecoderTrap};
+use encoding::all::ISO_8859_1;
+
 fn show_slice(slice: &[u8])
 {
     print!("{} bytes\n", slice.len());
@@ -35,7 +39,15 @@ fn join_to_string<T>(values: T, separator: &str) -> String
     where T: IntoIterator,
           T::Item: ToString,
 {
-    values.into_iter().map(|v| v.to_string()).collect::<Vec<_>>().join(separator)
+    values.into_iter().map(|v| v.to_string()).collect::<Vec<_>>()
+        .join(separator)
+}
+
+fn decode_ssid(data: &[u8]) -> Option<String>
+{
+    String::from_utf8(data.to_vec())
+        .or_else(|_| ISO_8859_1.decode(data, DecoderTrap::Strict))
+        .ok()
 }
 
 enum AccessPointStatus {
@@ -93,18 +105,23 @@ impl fmt::Display for AccessPoint {
         let octet = 0x88 + num_bars;
         let components = [0xE2, 0x96, octet];
         let bar_char = std::str::from_utf8(&components).unwrap();
-        let status_char = match self.status {
+        let status_symbol = match self.status {
             AccessPointStatus::None => " ",
             AccessPointStatus::Authenticated => "⇹",
             AccessPointStatus::Associated => "⮂",
             AccessPointStatus::Joined => "→",
         };
+        let pmf_symbol = match self.pmf {
+            ProtectedManagementFramesMode::Disabled => " ",
+            ProtectedManagementFramesMode::Capable => "🔑",
+            ProtectedManagementFramesMode::Required => "🔒",
+        };
 	let akms = join_to_string(&self.akms, " ");
 	let ciphers = join_to_string(&self.ciphers, " ");
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:4.0} {} {:8} {}-{}",
-            self.bssid, self.ssid, status_char, self.frequency, self.channel(),
-            self.channel_1, self.channel_2, self.channel_width, signal,
-            bar_char, self.pmf, akms, ciphers)
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:4.0} {} {} {}-{}",
+            self.bssid, self.ssid, status_symbol, self.frequency,
+            self.channel(), self.channel_1, self.channel_2,
+            self.channel_width, signal, bar_char, pmf_symbol, akms, ciphers)
     }
 }
 
@@ -188,7 +205,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                 let ies = InformationElements::parse(&mut io::Cursor::new(attr.as_bytes()));
                 for ref ie in ies.elements {
                     if ie.identifier == 0 {
-                        ssid = Some(String::from(std::str::from_utf8(&ie.data).unwrap()));
+                        ssid = decode_ssid(&ie.data);
                     }
                     else {
                         if let Some(ie_id) = nl80211::InformationElementId::convert_from(ie.identifier) {
