@@ -23,7 +23,3 @@ clap = "2"
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
-
-[profile.release]
-opt-level = 3
-lto = "thin"
