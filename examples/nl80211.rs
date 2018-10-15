@@ -2,7 +2,7 @@ extern crate libc;
 extern crate netlink_rust;
 extern crate mio;
 extern crate clap;
-extern crate nl80211;
+extern crate nl80211_rs;
 extern crate encoding;
 
 use std::io;
@@ -19,7 +19,8 @@ use netlink_rust::{HardwareAddress, Socket, Attribute, Protocol, Message, Messag
 use netlink_rust::generic;
 use netlink_rust::ConvertFrom;
 
-use nl80211::{InformationElements, WirelessInterface, CipherSuite,
+use nl80211_rs as nl80211;
+use nl80211_rs::{InformationElements, WirelessInterface, CipherSuite,
     AuthenticationKeyManagement, ProtectedManagementFramesMode};
 
 use clap::{Arg, App, SubCommand};
