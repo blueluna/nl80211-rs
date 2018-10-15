@@ -1,0 +1,14 @@
+[package]
+name = "nl80211-buildtools"
+version = "0.1.0"
+authors = ["Erik Svensson <erik.public@gmail.com>"]
+description="Tools for building datastructures and constants for nl80211"
+license="MIT"
+repository="https://github.com/blueluna/nl80211-rs"
+
+[dependencies]
+clap = "2"
+regex = "0.2"
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
