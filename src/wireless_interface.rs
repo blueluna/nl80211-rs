@@ -1,7 +1,7 @@
 use std::fmt;
 use std::io;
-use netlink::{Socket, Attribute, Message, MessageMode, HardwareAddress, Error};
-use netlink::generic;
+use netlink_rs::{Socket, Attribute, Message, MessageMode, HardwareAddress, Error};
+use netlink_rs::generic;
 use attributes;
 use commands::Command;
 
