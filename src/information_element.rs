@@ -2,7 +2,7 @@
 use std::io::Read;
 use std::io;
 use std::fmt;
-use netlink_rs::{NativeRead, Error};
+use netlink_rust::{NativeRead, Error};
 
 /// Raw Information Element data
 pub struct RawInformationElement

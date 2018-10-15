@@ -228,9 +228,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "netlink-rs"
+name = "netlink-rust"
 version = "0.1.0"
-source = "git+https://github.com/blueluna/netlink-rs#98cf0b17f569eb6ff366cf702a327599451a901c"
+source = "git+https://github.com/blueluna/netlink-rs#3b9df1ca7a8fa5a1e90bcc1da0c76e76399cc2a4"
 dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -247,14 +247,14 @@ dependencies = [
  "encoding 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio 0.6.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "netlink-rs 0.1.0 (git+https://github.com/blueluna/netlink-rs)",
+ "netlink-rust 0.1.0 (git+https://github.com/blueluna/netlink-rs)",
  "nl80211-buildtools 0.1.0 (git+https://github.com/blueluna/nl80211-buildtools)",
 ]
 
 [[package]]
 name = "nl80211-buildtools"
 version = "0.1.0"
-source = "git+https://github.com/blueluna/nl80211-buildtools#5a355168e2e3b40295b199c61f2d950c0cda480a"
+source = "git+https://github.com/blueluna/nl80211-buildtools#4e30b82f0111544aac75e0fb145ce3d7a7185746"
 dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -485,7 +485,7 @@ dependencies = [
 "checksum mio 0.6.16 (registry+https://github.com/rust-lang/crates.io-index)" = "71646331f2619b1026cc302f87a2b8b648d5c6dd6937846a16cc8ce0f347f432"
 "checksum miow 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f2f3b1cf331de6896aabf6e9d55dca90356cc9960cca7eaaf408a355ae919"
 "checksum net2 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
-"checksum netlink-rs 0.1.0 (git+https://github.com/blueluna/netlink-rs)" = "<none>"
+"checksum netlink-rust 0.1.0 (git+https://github.com/blueluna/netlink-rs)" = "<none>"
 "checksum nl80211-buildtools 0.1.0 (git+https://github.com/blueluna/nl80211-buildtools)" = "<none>"
 "checksum proc-macro2 0.4.20 (registry+https://github.com/rust-lang/crates.io-index)" = "3d7b7eaaa90b4a90a932a9ea6666c95a389e424eff347f0f793979289429feee"
 "checksum quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)" = "dd636425967c33af890042c483632d33fa7a18f19ad1d7ea72e8998c6ef8dea5"

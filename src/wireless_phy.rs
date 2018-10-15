@@ -1,8 +1,8 @@
 use std::io;
 use std::fmt;
-use netlink_rs;
-use netlink_rs::{Error, ConvertFrom};
-use netlink_rs::generic;
+use netlink_rust as netlink;
+use netlink_rust::{Error, ConvertFrom};
+use netlink_rust::generic;
 use attributes::{Attribute};
 use commands::Command;
 
@@ -23,7 +23,7 @@ impl WirelessPhy {
                     phy_id = Some(attr.as_u32()?);
                 }
                 Attribute::SupportedCommands => {
-                    let attrs = netlink_rs::parse_attributes(&mut io::Cursor::new(attr.as_bytes()));
+                    let attrs = netlink::parse_attributes(&mut io::Cursor::new(attr.as_bytes()));
                     for attr in attrs {
                         match Command::convert_from(attr.as_u32()? as u8) {
                             Some(cmd) => commands.push(cmd),
@@ -56,10 +56,10 @@ impl fmt::Display for WirelessPhy {
     }
 }
 
-pub fn get_wireless_phys(socket: &mut netlink_rs::Socket, family_id: u16) -> Result<Vec<WirelessPhy>, Error>
+pub fn get_wireless_phys(socket: &mut netlink::Socket, family_id: u16) -> Result<Vec<WirelessPhy>, Error>
 {
     {
-        let tx_msg = generic::Message::new(family_id, Command::GetWiphy, netlink_rs::MessageMode::Dump);
+        let tx_msg = generic::Message::new(family_id, Command::GetWiphy, netlink::MessageMode::Dump);
         socket.send_message(&tx_msg)?;
     }
     let mut phys = vec![];
@@ -71,7 +71,7 @@ pub fn get_wireless_phys(socket: &mut netlink_rs::Socket, family_id: u16) -> Res
         else {
             for message in messages {
                 match message {
-                    netlink_rs::Message::Data(m) => {
+                    netlink::Message::Data(m) => {
                         if m.header.identifier == family_id {
                             let gmsg = generic::Message::parse(&mut io::Cursor::new(m.data))?;
                             match WirelessPhy::from_message(gmsg) {

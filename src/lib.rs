@@ -11,7 +11,7 @@
 
 #![recursion_limit = "1024"]
 
-extern crate netlink_rs;
+extern crate netlink_rust;
 #[macro_use] extern crate bitflags;
 
 mod commands;

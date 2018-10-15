@@ -1,5 +1,5 @@
 extern crate libc;
-extern crate netlink_rs;
+extern crate netlink_rust;
 extern crate mio;
 extern crate clap;
 extern crate nl80211;
@@ -14,9 +14,10 @@ use std::os::unix::io::AsRawFd;
 use mio::{Ready, Poll, PollOpt, Token, Events};
 use mio::unix::EventedFd;
 
-use netlink_rs::{HardwareAddress, Socket, Attribute, Protocol, Message, MessageMode, Error, NativeRead};
-use netlink_rs::generic;
-use netlink_rs::ConvertFrom;
+use netlink_rust as netlink;
+use netlink_rust::{HardwareAddress, Socket, Attribute, Protocol, Message, MessageMode, Error, NativeRead};
+use netlink_rust::generic;
+use netlink_rust::ConvertFrom;
 
 use nl80211::{InformationElements, WirelessInterface, CipherSuite,
     AuthenticationKeyManagement, ProtectedManagementFramesMode};
@@ -136,7 +137,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut channel_2 = 0;
     let mut channel_width = 0;
     let mut status = AccessPointStatus::None;
-    let attrs = netlink_rs::parse_attributes(&mut io::Cursor::new(data));
+    let attrs = netlink::parse_attributes(&mut io::Cursor::new(data));
     let mut ciphers = vec![];
     let mut akms = vec![];
     let mut pmf = ProtectedManagementFramesMode::Disabled;

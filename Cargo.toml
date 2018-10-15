@@ -14,7 +14,7 @@ nl80211-buildtools = { git = "https://github.com/blueluna/nl80211-buildtools", b
 [dependencies]
 libc = "0.2"
 bitflags =  "1.0"
-netlink-rs = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
+netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
 mio = "0.6"
