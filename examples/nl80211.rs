@@ -15,9 +15,9 @@ use mio::{Ready, Poll, PollOpt, Token, Events};
 use mio::unix::EventedFd;
 
 use netlink_rust as netlink;
-use netlink_rust::{HardwareAddress, Socket, Attribute, Protocol, Message, MessageMode, Error, NativeRead};
+use netlink_rust::{HardwareAddress, Socket, Attribute, Protocol, Message,
+    MessageMode, Error, NativeRead, ConvertFrom};
 use netlink_rust::generic;
-use netlink_rust::ConvertFrom;
 
 use nl80211_rs as nl80211;
 use nl80211_rs::{InformationElements, WirelessInterface, CipherSuite,
@@ -138,7 +138,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut channel_2 = 0;
     let mut channel_width = 0;
     let mut status = AccessPointStatus::None;
-    let attrs = netlink::parse_attributes(&mut io::Cursor::new(data));
+    let attrs = netlink::read_attributes(&mut io::Cursor::new(data));
     let mut ciphers = vec![];
     let mut akms = vec![];
     let mut pmf = ProtectedManagementFramesMode::Disabled;
@@ -180,7 +180,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             BssAttribute::LastSeenBootTime => (),
             BssAttribute::PrespData => (),
             BssAttribute::BeaconIes => {
-                let ies = InformationElements::parse(&mut io::Cursor::new(attr.as_bytes()));
+                let ies = InformationElements::read(&mut io::Cursor::new(attr.as_bytes()));
                 for ref ie in ies.elements {
                     if let Some(ie_id) = nl80211::InformationElementId::convert_from(ie.identifier) {
                         match ie_id {
@@ -204,7 +204,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             },
             BssAttribute::InformationElements => {
                 // Write a parser
-                let ies = InformationElements::parse(&mut io::Cursor::new(attr.as_bytes()));
+                let ies = InformationElements::read(&mut io::Cursor::new(attr.as_bytes()));
                 for ref ie in ies.elements {
                     if ie.identifier == 0 {
                         ssid = decode_ssid(&ie.data);
@@ -348,7 +348,7 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
                 match message {
                     Message::Data(m) => {
                         if m.header.identifier ==  wireless_device.netlink_family {
-                            let msg = generic::Message::parse(&mut io::Cursor::new(m.data))?;
+                            let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                             aps.push(parse_scan_result(&msg)?);
                         }
                         else {
@@ -461,7 +461,7 @@ impl Monitor {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.family.id {
                         let mut wdev_id = WirelessDeviceId::None;
-                        let msg = generic::Message::parse(&mut io::Cursor::new(m.data))?;
+                        let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                         for ref attr in &msg.attributes {
                             let attr_id = nl80211::Attribute::from(attr.identifier);
                             match attr_id {
@@ -532,7 +532,7 @@ impl Monitor {
             match message {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.family.id {
-                        let msg = generic::Message::parse(&mut io::Cursor::new(m.data))?;
+                        let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => {},
@@ -583,6 +583,7 @@ enum UserCommand {
     Survey,
     Disconnect,
     Monitor,
+    GetRegulatory,
 }
 
 impl UserCommand {
@@ -594,6 +595,7 @@ impl UserCommand {
             UserCommand::Survey => false,
             UserCommand::Disconnect => true,
             UserCommand::Monitor => false,
+            UserCommand::GetRegulatory => false,
         }
     }
 }
@@ -608,10 +610,10 @@ fn main() {
         .subcommand(SubCommand::with_name("scan-results"))
         .subcommand(SubCommand::with_name("disconnect"))
         .subcommand(SubCommand::with_name("survey"))
+        .subcommand(SubCommand::with_name("get-regulatory"))
         .get_matches();
 
     let uid = unsafe { libc::getuid() };
-    println!("uid: {}", uid);
 
     let interface = matches.value_of("interface");
 
@@ -621,6 +623,7 @@ fn main() {
         ("scan-results", _) => { UserCommand::ScanResults },
         ("schedule-scan", _) => { UserCommand::ScheduleScan },
         ("survey", _) => { UserCommand::Survey },
+        ("get-regulatory", _) => { UserCommand::GetRegulatory },
         _ => { UserCommand::Monitor },
     };
 
@@ -674,6 +677,9 @@ fn main() {
                 }
                 UserCommand::Survey => {
                     dev.get_survey(&mut control_socket).unwrap();
+                }
+                UserCommand::GetRegulatory => {
+                    dev.get_regulatory(&mut control_socket).unwrap();
                 }
                 UserCommand::Monitor => {
                     let mut monitor = Monitor::new(family).unwrap();

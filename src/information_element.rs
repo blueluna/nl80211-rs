@@ -12,7 +12,7 @@ pub struct RawInformationElement
 }
 
 impl RawInformationElement {
-    pub fn parse<R: Read>(reader: &mut R) -> Result<RawInformationElement, Error> {
+    pub fn read<R: Read>(reader: &mut R) -> Result<RawInformationElement, Error> {
         let identifier = u8::read(reader)?;
         let length = u8::read(reader)? as usize;
         let mut data = vec![0u8; length];
@@ -27,10 +27,10 @@ pub struct InformationElements
 }
 
 impl InformationElements {
-    pub fn parse<R: Read>(reader: &mut R) -> InformationElements {
+    pub fn read<R: Read>(reader: &mut R) -> InformationElements {
         let mut elements = vec![];
         loop {
-            match RawInformationElement::parse(reader) {
+            match RawInformationElement::read(reader) {
                 Ok(ie) => elements.push(ie),
                 Err(_) => break,
             }
@@ -280,3 +280,4 @@ impl RobustSecurityNetwork {
         ProtectedManagementFramesMode::Disabled
     }
 }
+

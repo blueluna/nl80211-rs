@@ -1,9 +1,41 @@
 use std::fmt;
+use std::mem;
 use std::io;
-use netlink_rust::{Socket, Attribute, Message, MessageMode, HardwareAddress, Error};
+use netlink_rust::{Socket, Attribute, Message, MessageMode, HardwareAddress,
+    Error, read_attributes, NativeParse};
 use netlink_rust::generic;
 use attributes;
 use commands::Command;
+
+/// Parsing a list of attributes
+/// 
+/// Each chunk of attributes has a size and an index, the size is the size of
+/// the chunk including the header
+/// 
+///  ---------------------------------------------------------------
+///  | size | index | attributes ... | size | index | attributes ...
+///  ---------------------------------------------------------------
+///     u16    u16    u8 * (size - 4)
+/// 
+pub fn read_attribute_list(data: &[u8]) -> Vec<Attribute>
+{
+    let vs = mem::size_of::<u16>();
+    let mut attrs = vec![];
+    let mut d = &data[..];
+    while d.len() > (vs * 2) {
+        let size = u16::parse(&d).unwrap();
+        let _index = u16::parse(&d[vs..]).unwrap();
+        if d.len() > size as usize {
+            attrs.append(&mut read_attributes(
+                &mut io::Cursor::new(&d[(vs * 2)..size as usize])));
+        }
+        else {
+            break;
+        }
+        d = &d[size as usize..];
+    }
+    attrs
+}
 
 pub struct WirelessInterface { 
     pub netlink_family: u16,
@@ -323,6 +355,87 @@ impl WirelessInterface {
         }
         Ok(())
     }
+
+    pub fn get_regulatory(&self, socket: &mut Socket) -> Result<(), Error>
+    {
+        let msg = self.prepare_message(Command::GetRegulatory,
+            MessageMode::Dump);
+        socket.send_message(&msg)?;
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for message in messages {
+                match message {
+                    Message::Data(m) => {
+                        let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
+                        let command = Command::from(msg.command);
+                        println!("Command: {:?}", command);
+                        for ref attr in &msg.attributes {
+                            let attr_id = attributes::Attribute::from(attr.identifier);
+                            match attr_id {
+                                attributes::Attribute::RegAlpha2 => {
+                                    println!("Regulatory Domain: {}", attr.as_string()?);
+                                }
+                                attributes::Attribute::DfsRegion => {
+                                    let region = attributes::DynamicFrequencySelectionRegions::from(attr.as_u8()?);
+                                    println!("Regulatory Entity: {:?}", region);
+                                }
+                                attributes::Attribute::RegRules => {
+                                    for ref rule_attr in read_attribute_list(&attr.as_bytes()) {
+                                        let attr_id = attributes::RegulatoryRuleAttribute::from(rule_attr.identifier);
+                                        match attr_id {
+                                            attributes::RegulatoryRuleAttribute::RangeStart => {
+                                                let freq = rule_attr.as_u32()? as f64 / 1000.0;
+                                                println!("Range Start {}", freq);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::RangeEnd => {
+                                                let freq = rule_attr.as_u32()? as f64 / 1000.0;
+                                                println!("Range End {}", freq);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::MaximumBandwidth => {
+                                                let bw = rule_attr.as_u32()? as f64 / 1000.0;
+                                                println!("Maximum Bandwidth {}", bw);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::MaximumAntennaGain => {
+                                                println!("Maximum Antenna Gain {}", rule_attr.as_u32()?);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::Flags => {
+                                                let flags = attributes::RegulatoryFlags::from_bits_truncate(
+                                                    rule_attr.as_u32()?);
+                                                println!("Flags {:?}", flags);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::MaximumEffectiveIsotropicRadiatedPower => {
+                                                println!("Maximum Effective Power {}", rule_attr.as_u32()?);
+                                            }
+                                            attributes::RegulatoryRuleAttribute::ChannelAvailableCheckTime => {
+                                                println!("Channel Available Check Time {}", rule_attr.as_u32()?);
+                                            }
+                                            _ => {
+                                                println!("Attribute {:?} Length: {}", attr_id, rule_attr.len());
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    println!("Attribute: {:?} Length: {}", attr_id, attr.len());
+                                }
+                            }
+                            
+                        }
+                    },
+                    Message::Acknowledge => {
+                        println!("Acknowledge");
+                    },
+                    Message::Done => {
+                        println!("Done");
+                    },
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 pub fn get_wireless_interfaces(socket: &mut Socket, family_id: u16) -> Result<Vec<WirelessInterface>, Error>
@@ -341,7 +454,7 @@ pub fn get_wireless_interfaces(socket: &mut Socket, family_id: u16) -> Result<Ve
             match message {
                 Message::Data(m) => {
                     if m.header.identifier == family_id {
-                        let gmsg = generic::Message::parse(&mut io::Cursor::new(m.data))?;
+                        let gmsg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                         match WirelessInterface::from_message(gmsg, family_id) {
                             Ok(wi) => devices.push(wi),
                             Err(_) => (),

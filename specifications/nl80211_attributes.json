@@ -1758,6 +1758,90 @@
           "data_length": 6
         }
       }
+    },
+    "RegulatoryRuleAttribute": {
+      "original_name": "nl80211_reg_rule_attr",
+      "value_type": "u16",
+      "items": {
+        "Invalid": {
+          "value": 0,
+          "original_name": "__NL80211_REG_RULE_ATTR_INVALID",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Flags": {
+          "value": 1,
+          "original_name": "NL80211_ATTR_REG_RULE_FLAGS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "RangeStart": {
+          "value": 2,
+          "original_name": "NL80211_ATTR_FREQ_RANGE_START",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "RangeEnd": {
+          "value": 3,
+          "original_name": "NL80211_ATTR_FREQ_RANGE_END",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaximumBandwidth": {
+          "value": 4,
+          "original_name": "NL80211_ATTR_FREQ_RANGE_MAX_BW",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaximumAntennaGain": {
+          "value": 5,
+          "original_name": "NL80211_ATTR_POWER_RULE_MAX_ANT_GAIN",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MaximumEffectiveIsotropicRadiatedPower": {
+          "value": 6,
+          "original_name": "NL80211_ATTR_POWER_RULE_MAX_EIRP",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ChannelAvailableCheckTime": {
+          "value": 7,
+          "original_name": "NL80211_ATTR_DFS_CAC_TIME",
+          "data_type": "u32",
+          "data_length": 0
+        }
+      }
+    },
+    "DynamicFrequencySelectionRegions": {
+      "original_name": "nl80211_dfs_regions",
+      "value_type": "u8",
+      "items": {
+        "Unset": {
+          "value": 0,
+          "original_name": "NL80211_DFS_UNSET",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "FCC": {
+          "value": 1,
+          "original_name": "NL80211_DFS_FCC",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ETSI": {
+          "value": 2,
+          "original_name": "NL80211_DFS_ETSI",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Japan": {
+          "value": 3,
+          "original_name": "NL80211_DFS_JP",
+          "data_type": "bytes",
+          "data_length": 0
+        }
+      }
     }
   }
 }
