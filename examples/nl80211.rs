@@ -257,6 +257,12 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                         akms.push(a);
                                     }
                                 }
+                                /*
+                                nl80211::InformationElementId::HighThroughputCapabilities => {
+                                    println!("HT Capabilities: {}", ie.data.len());
+                                    show_slice(&ie.data);
+                                }
+                                */
                                 _ => (),
                             }
                         }
@@ -605,6 +611,7 @@ fn main() {
         .get_matches();
 
     let uid = unsafe { libc::getuid() };
+    println!("uid: {}", uid);
 
     let interface = matches.value_of("interface");
 
@@ -621,9 +628,12 @@ fn main() {
         println!("Need to be root");
         return;
     }
-    let mut control_socket = Socket::new(Protocol::Generic).unwrap();
-    let family = generic::get_generic_family(&mut control_socket, "nl80211").unwrap();
-    let devices = nl80211::get_wireless_interfaces(&mut control_socket, family.id).unwrap();
+    let mut control_socket = Socket::new(Protocol::Generic)
+        .expect("Failed to open control socket");
+    let family = generic::get_generic_family(&mut control_socket, "nl80211")
+        .expect("Failed to get nl80211 family");
+    let devices = nl80211::get_wireless_interfaces(&mut control_socket, family.id)
+        .expect("Failed to get nl80211 wireless interfaces");
     if devices.is_empty() {
         println!("No wireless devices found.");
     }

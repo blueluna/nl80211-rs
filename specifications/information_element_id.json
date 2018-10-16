@@ -139,6 +139,12 @@
           "data_type": "bytes",
           "data_length": 0
         },
+        "MeasurementPilotTransmission": {
+          "value": 66,
+          "original_name": "IE_MEASUREMENT_PILOT_TRANSMISSION",
+          "data_type": "bytes",
+          "data_length": 0
+        },
         "RoamingEnabledCapability": {
           "value": 70,
           "original_name": "IE_RM_ENABLED_CAPABILITY",
