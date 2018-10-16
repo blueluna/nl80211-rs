@@ -8,15 +8,16 @@ use attributes;
 use commands::Command;
 
 /// Parsing a list of attributes
-/// 
+///
 /// Each chunk of attributes has a size and an index, the size is the size of
 /// the chunk including the header
-/// 
-///  ---------------------------------------------------------------
-///  | size | index | attributes ... | size | index | attributes ...
-///  ---------------------------------------------------------------
-///     u16    u16    u8 * (size - 4)
-/// 
+///
+/// ```text
+/// ---------------------------------------------------------------
+/// | size | index | attributes ... | size | index | attributes ...
+/// ---------------------------------------------------------------
+///    u16    u16    u8 * (size - 4)
+/// ```
 pub fn read_attribute_list(data: &[u8]) -> Vec<Attribute>
 {
     let vs = mem::size_of::<u16>();
