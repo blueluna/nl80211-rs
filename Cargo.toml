@@ -15,14 +15,15 @@ members = [ "nl80211-buildtools" ]
 nl80211-buildtools = { path = "nl80211-buildtools", version = "0.1" }
 
 [dependencies]
-libc = "0.2"
 bitflags =  "1.0"
+byteorder = "1.2"
+encoding = "0.2"
 netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
 mio = "0.6"
-encoding = "0.2"
 clap = "2"
+libc = "0.2"
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }

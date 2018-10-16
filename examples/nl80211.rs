@@ -3,30 +3,27 @@ extern crate netlink_rust;
 extern crate mio;
 extern crate clap;
 extern crate nl80211_rs;
-extern crate encoding;
 
 use std::io;
 use std::io::{Read, Write};
 use std::fmt;
 use std::convert::{From};
 use std::os::unix::io::AsRawFd;
+use std::time::{Duration, Instant};
 
 use mio::{Ready, Poll, PollOpt, Token, Events};
 use mio::unix::EventedFd;
 
 use netlink_rust as netlink;
-use netlink_rust::{HardwareAddress, Socket, Attribute, Protocol, Message,
+use netlink_rust::{HardwareAddress, Socket, Protocol, Message,
     MessageMode, Error, NativeRead, ConvertFrom};
 use netlink_rust::generic;
 
 use nl80211_rs as nl80211;
-use nl80211_rs::{InformationElements, WirelessInterface, CipherSuite,
-    AuthenticationKeyManagement, ProtectedManagementFramesMode};
+use nl80211_rs::*;
+use nl80211_rs::InformationElement;
 
 use clap::{Arg, App, SubCommand};
-
-use encoding::{Encoding, DecoderTrap};
-use encoding::all::ISO_8859_1;
 
 fn show_slice(slice: &[u8])
 {
@@ -43,13 +40,6 @@ fn join_to_string<T>(values: T, separator: &str) -> String
 {
     values.into_iter().map(|v| v.to_string()).collect::<Vec<_>>()
         .join(separator)
-}
-
-fn decode_ssid(data: &[u8]) -> Option<String>
-{
-    String::from_utf8(data.to_vec())
-        .or_else(|_| ISO_8859_1.decode(data, DecoderTrap::Strict))
-        .ok()
 }
 
 enum AccessPointStatus {
@@ -180,7 +170,8 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             BssAttribute::LastSeenBootTime => (),
             BssAttribute::PrespData => (),
             BssAttribute::BeaconIes => {
-                let ies = InformationElements::read(&mut io::Cursor::new(attr.as_bytes()));
+                let attr_data = &attr.as_bytes();
+                let ies = InformationElements::parse(attr_data);
                 for ref ie in ies.elements {
                     if let Some(ie_id) = nl80211::InformationElementId::convert_from(ie.identifier) {
                         match ie_id {
@@ -191,7 +182,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                 }
                             }
                             nl80211::InformationElementId::RobustSecurityNetwork => {
-                                let _ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
+                                let _ie_rsn = nl80211::RobustSecurityNetwork::parse(&ie.data)?;
                             }
                             _ => (),
                         }
@@ -204,71 +195,37 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             },
             BssAttribute::InformationElements => {
                 // Write a parser
-                let ies = InformationElements::read(&mut io::Cursor::new(attr.as_bytes()));
-                for ref ie in ies.elements {
-                    if ie.identifier == 0 {
-                        ssid = decode_ssid(&ie.data);
-                    }
-                    else {
-                        if let Some(ie_id) = nl80211::InformationElementId::convert_from(ie.identifier) {
-                            match ie_id {
-                                nl80211::InformationElementId::HighThroughputOperation => {
-                                    if ie.data.len() == 22 {
-                                        let width = if ie.data[1] & 0x04 == 0 { 20 } else { 40 };
-                                        if channel_width < width {
-                                            channel_width = width;
-                                        }
-                                        channel_1 = ie.data[0];
-                                        channel_2 = match ie.data[1] & 0x03 {
-                                            1 => channel_1 + 1,
-                                            3 => channel_1 - 1,
-                                            _ => 0,
-                                        }
-                                    }
-                                }
-                                nl80211::InformationElementId::VeryHighThroughputOperation => {
-                                    if ie.data.len() == 5 {
-                                        let width = match ie.data[0] & 0x03 {
-                                            1 => 80,
-                                            2 => 160,
-                                            3 => 80,
-                                            _ => 40,
-                                        };
-                                        if channel_width < width {
-                                            channel_width = width;
-                                        }
-                                        channel_1 = ie.data[1];
-                                        channel_2 = ie.data[2];
-                                    }
-                                }
-                                nl80211::InformationElementId::ExtendedChannelSwitchAnnouncement => {
-                                    if ie.data.len() == 4 {
-                                        let new_channel = ie.data[2];
-                                        println!("Channel Switch: {:?} {}", ssid, new_channel);
-                                    }
-                                }
-                                nl80211::InformationElementId::RobustSecurityNetwork => {
-                                    let ie_rsn = nl80211::RobustSecurityNetwork::from_bytes(&ie.data)?;
-                                    pmf = ie_rsn.pmf_mode();
-                                    for c in ie_rsn.ciphers {
-                                        ciphers.push(c);
-                                    }
-                                    for a in ie_rsn.akms {
-                                        akms.push(a);
-                                    }
-                                }
-                                /*
-                                nl80211::InformationElementId::HighThroughputCapabilities => {
-                                    println!("HT Capabilities: {}", ie.data.len());
-                                    show_slice(&ie.data);
-                                }
-                                */
-                                _ => (),
+                let attr_data = &attr.as_bytes();
+                let ies = InformationElement::parse_all(attr_data)?;
+                for ref ie in ies {
+                    match ie {
+                        InformationElement::Ssid(ie) => {
+                            ssid = Some(ie.ssid.clone());
+                        },
+                        InformationElement::HighThroughputOperation(ie) => {
+                            if channel_width < ie.width {
+                                channel_width = ie.width;
                             }
-                        }
-                        else {
-                            println!("Unknown IE {} Length: {}", ie.identifier, ie.data.len());
-                        }
+                            channel_1 = ie.primary_channel;
+                            channel_2 = ie.secondary_channel;
+                        },
+                        InformationElement::VeryHighThroughputOperation(ie) => {
+                            if channel_width < ie.width {
+                                channel_width = ie.width;
+                            }
+                            channel_1 = ie.channel;
+                            channel_2 = ie.secondary_channel;
+                        },
+                        InformationElement::RobustSecurityNetwork(ie) => {
+                            pmf = ie.pmf_mode();
+                            for c in ie.ciphers.iter() {
+                                ciphers.push(c.clone());
+                            }
+                            for a in ie.akms.iter() {
+                                akms.push(a.clone());
+                            }
+                        },
+                        _ => (),
                     }
                 }
             },
@@ -334,7 +291,8 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
 {
     println!("Get Scan for {}", wireless_device.interface_name);
     {
-        let tx_msg = wireless_device.prepare_message(nl80211::Command::GetScan, MessageMode::Dump);
+        let tx_msg = wireless_device.prepare_message(
+            nl80211::Command::GetScan, MessageMode::Dump)?;
         socket.send_message(&tx_msg)?;
     }
     let mut aps = vec![];
@@ -347,7 +305,7 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
             for message in messages {
                 match message {
                     Message::Data(m) => {
-                        if m.header.identifier ==  wireless_device.netlink_family {
+                        if m.header.identifier ==  wireless_device.family.id {
                             let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                             aps.push(parse_scan_result(&msg)?);
                         }
@@ -364,16 +322,10 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
     print_scan_results(&mut aps)
 }
 
-#[derive(PartialEq)]
-enum WirelessDeviceId
-{
-    None,
-    InterfaceIndex(u32),
-    DeviceIdentifier(u64),
-}
-
 struct Monitor {
-    family: generic::Family,
+    can_scan: bool,
+    scan_triggered: bool,
+    device: WirelessInterface,
     event_socket: Socket,
     control_socket: Socket,
     control_command: nl80211::Command,
@@ -381,24 +333,31 @@ struct Monitor {
 }
 
 impl Monitor {
-    fn new(family: generic::Family) -> Result<Monitor, Error>
+    fn new(can_scan: bool, device: WirelessInterface) -> Result<Monitor, Error>
     {
         let control_socket = Socket::new(Protocol::Generic)?;
         let mut event_socket = Socket::new(Protocol::Generic)?;
 
-        for ref group in &family.multicast_groups {
+        for ref group in &device.family.multicast_groups {
             event_socket.multicast_group_subscribe(group.id)?;
         }
 
-        Ok(Monitor { family: family, event_socket: event_socket,
+        Ok(Monitor {
+            can_scan: can_scan,
+            scan_triggered: false,
+            device: device,
+            event_socket: event_socket,
             control_socket: control_socket,
             control_command: nl80211::Command::Unspecified,
-            scan_results: vec![] })
+            scan_results: vec![]
+            })
     }
 
     fn run(&mut self) -> Result<(), Error>
     {
         println!("Monitor events");
+        let mut start = Instant::now();
+        let timeout = Duration::from_millis(500);
         const EVENT: Token = Token(1);
         const CONTROL: Token = Token(2);
         let poll = Poll::new()?;
@@ -406,7 +365,7 @@ impl Monitor {
         poll.register(&EventedFd(&self.control_socket.as_raw_fd()), CONTROL, Ready::readable(), PollOpt::edge())?;
         let mut events = Events::with_capacity(1024);
         loop {
-            poll.poll(&mut events, None)?;
+            poll.poll(&mut events, Some(timeout))?;
             for event in events.iter() {
                 match event.token() {
                     EVENT => {
@@ -431,27 +390,26 @@ impl Monitor {
                             }
                         }
                     },
-                    _ => unreachable!(),
+                    _ => println!("Other event"),
                 }
             }
+            let elapsed = start.elapsed();
+            if elapsed > Duration::from_secs(1) {
+                if self.can_scan && !self.scan_triggered {
+                    println!("Trigger Scan");
+                    let tx_msg = self.device.prepare_message(
+                        nl80211::Command::TriggerScan, MessageMode::None)?;
+                    match self.control_socket.send_message(&tx_msg) {
+                        Err(e) => {
+                            println!("Scan Failed {}", e);
+                        },
+                        Ok(_) => (),
+                    }
+                    self.scan_triggered = true;
+                }
+                start = Instant::now();
+            }
         }
-    }
-
-    fn prepare_message(&self, dev_id: WirelessDeviceId, cmd: nl80211::Command, mode: MessageMode) -> Result<generic::Message, Error>
-    {
-        let mut tx_msg = generic::Message::new(self.family.id, cmd, mode);
-        match dev_id {
-            WirelessDeviceId::DeviceIdentifier(id) => {
-                tx_msg.append_attribute(Attribute::new(nl80211::Attribute::Wdev, id));
-            }
-            WirelessDeviceId::InterfaceIndex(id) => {
-                tx_msg.append_attribute(Attribute::new(nl80211::Attribute::Ifindex, id));
-            }
-            _ => {
-                return Err(io::Error::new(io::ErrorKind::Other, "No interface identifier").into());
-            }
-        }
-        Ok(tx_msg)
     }
 
     fn handle_event_messages(&mut self, messages: Vec<Message>) -> Result<(), Error>
@@ -459,32 +417,15 @@ impl Monitor {
         for message in messages {
             match message {
                 Message::Data(m) => {
-                    if m.header.identifier ==  self.family.id {
-                        let mut wdev_id = WirelessDeviceId::None;
+                    if m.header.identifier ==  self.device.family.id {
                         let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
-                        for ref attr in &msg.attributes {
-                            let attr_id = nl80211::Attribute::from(attr.identifier);
-                            match attr_id {
-                                nl80211::Attribute::Wdev => {
-                                    if let Ok(id) = attr.as_u64() {
-                                        wdev_id = WirelessDeviceId::DeviceIdentifier(id);
-                                        break;
-                                    }
-                                }
-                                nl80211::Attribute::Ifindex => {
-                                    if let Ok(id) = attr.as_u32() {
-                                        wdev_id = WirelessDeviceId::InterfaceIndex(id);
-                                        break;
-                                    }
-                                }
-                                _ => (),
-                            }
-                        }
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => (),
                             nl80211::Command::NewScanResults => {
-                                let tx_msg = self.prepare_message(wdev_id, nl80211::Command::GetScan, MessageMode::Dump)?;
+                                let tx_msg = self.device.prepare_message(
+                                    nl80211::Command::GetScan,
+                                    MessageMode::Dump)?;
                                 self.control_socket.send_message(&tx_msg)?;
                             }
                             _ => {
@@ -531,7 +472,7 @@ impl Monitor {
         for message in messages {
             match message {
                 Message::Data(m) => {
-                    if m.header.identifier ==  self.family.id {
+                    if m.header.identifier ==  self.device.family.id {
                         let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
@@ -541,6 +482,7 @@ impl Monitor {
                                     self.scan_results.clear();
                                 }
                                 self.scan_results.push(parse_scan_result(&msg)?);
+                                self.scan_triggered = false;
                             }
                             _ => {
                                 println!("Control Command: {:?}", command);
@@ -633,62 +575,57 @@ fn main() {
     }
     let mut control_socket = Socket::new(Protocol::Generic)
         .expect("Failed to open control socket");
-    let family = generic::get_generic_family(&mut control_socket, "nl80211")
+    let family = generic::Family::from_name(&mut control_socket, "nl80211")
         .expect("Failed to get nl80211 family");
-    let devices = nl80211::get_wireless_interfaces(&mut control_socket, family.id)
+    let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, family)
         .expect("Failed to get nl80211 wireless interfaces");
-    if devices.is_empty() {
-        println!("No wireless devices found.");
+    let mut device = None;
+    if let Some(if_name) = interface {
+        for dev in devices.into_iter() {
+            if dev.interface_name == if_name {
+                device = Some(dev);
+                break;
+            }
+        }
     }
     else {
-        let mut device = None;
-        if let Some(if_name) = interface {
-            for dev in &devices {
-                if dev.interface_name == if_name {
-                    device = Some(dev);
-                    break;
+        device = Some(devices.remove(0));
+    }
+    if let Some(dev) = device {
+        println!("Using interface {}", dev.interface_name);
+        match user_command {
+            UserCommand::Disconnect => {
+                println!("Disconnect");
+                dev.disconnect(&mut control_socket).unwrap();
+            }
+            UserCommand::Scan => {
+                dev.trigger_scan(&mut control_socket).unwrap();
+            }
+            UserCommand::ScheduleScan => {
+                println!("~~~ Stop Scheduled Scan");
+                match dev.stop_interval_scan(&mut control_socket) {
+                    Ok(_) => (),
+                    Err(err) => println!("{}", err),
                 }
+                println!("~~~ Start Scheduled Scan");
+                dev.start_interval_scan(&mut control_socket, 1000).unwrap();
+            }
+            UserCommand::ScanResults => {
+                scan_request_result(&mut control_socket, &dev).unwrap();
+            }
+            UserCommand::Survey => {
+                dev.get_survey(&mut control_socket).unwrap();
+            }
+            UserCommand::GetRegulatory => {
+                dev.get_regulatory(&mut control_socket).unwrap();
+            }
+            UserCommand::Monitor => {
+                let mut monitor = Monitor::new(uid == 0, dev).unwrap();
+                monitor.run().unwrap();
             }
         }
-        else {
-            device = devices.first();
-        }
-        if let Some(dev) = device {
-            println!("Using interface {}", dev.interface_name);
-            match user_command {
-                UserCommand::Disconnect => {
-                    println!("Disconnect");
-                    dev.disconnect(&mut control_socket).unwrap();
-                }
-                UserCommand::Scan => {
-                    dev.trigger_scan(&mut control_socket).unwrap();
-                }
-                UserCommand::ScheduleScan => {
-                    println!("~~~ Stop Scheduled Scan");
-                    match dev.stop_interval_scan(&mut control_socket) {
-                        Ok(_) => (),
-                        Err(err) => println!("{}", err),
-                    }
-                    println!("~~~ Start Scheduled Scan");
-                    dev.start_interval_scan(&mut control_socket, 1000).unwrap();
-                }
-                UserCommand::ScanResults => {
-                    scan_request_result(&mut control_socket, &dev).unwrap();
-                }
-                UserCommand::Survey => {
-                    dev.get_survey(&mut control_socket).unwrap();
-                }
-                UserCommand::GetRegulatory => {
-                    dev.get_regulatory(&mut control_socket).unwrap();
-                }
-                UserCommand::Monitor => {
-                    let mut monitor = Monitor::new(family).unwrap();
-                    monitor.run().unwrap();
-                }
-            }
-        }
-        else {
-            println!("Failed to find the device");
-        }
+    }
+    else {
+        println!("Failed to find the device");
     }
 }

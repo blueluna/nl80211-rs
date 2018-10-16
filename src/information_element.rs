@@ -1,37 +1,63 @@
 
-use std::io::Read;
+//! ## Information Elements
+//!
+//! Somewhat structured data with 802.11 information data.
+//!
+//! ### References
+//!
+//! * 802.11-2012 standard
+//! * Wireshark 802.11 dissector, <https://raw.githubusercontent.com/wireshark/wireshark/master/epan/dissectors/packet-ieee80211.c>
+//! * Hostapd, <https://w1.fi/cgit/hostap/tree/src/common/ieee802_11_defs.h>
+
 use std::io;
 use std::fmt;
-use netlink_rust::{NativeRead, Error};
+use std::convert::{Into};
 
-/// Raw Information Element data
-pub struct RawInformationElement
+use encoding::{Encoding, DecoderTrap};
+use encoding::all::ISO_8859_1;
+
+use netlink_rust::{Error, ConvertFrom};
+use unpack::{Unpack, unpack_vec};
+use information_element_ids::InformationElementId;
+
+pub struct RawInformationElement<'a>
 {
     pub identifier: u8,
-    pub data: Vec<u8>,
+    pub data: &'a [u8],
 }
 
-impl RawInformationElement {
-    pub fn read<R: Read>(reader: &mut R) -> Result<RawInformationElement, Error> {
-        let identifier = u8::read(reader)?;
-        let length = u8::read(reader)? as usize;
-        let mut data = vec![0u8; length];
-        reader.read_exact(&mut data)?;
-        Ok(RawInformationElement { identifier: identifier, data: data })
+impl<'a> RawInformationElement<'a> {
+    pub fn parse(data: &'a [u8]) -> Result<RawInformationElement<'a>, Error> {
+        if data.len() < 2 {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
+        }
+        let (identifier, data) = u8::unpack(data);
+        let (length, data) = u8::unpack(data);
+        let length = length as usize;
+        if data.len() < length {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
+        }
+        Ok(RawInformationElement { identifier: identifier,
+            data: &data[..length] })
     }
 }
 
-pub struct InformationElements
+pub struct InformationElements<'a>
 {
-    pub elements: Vec<RawInformationElement>,
+    pub elements: Vec<RawInformationElement<'a>>,
 }
 
-impl InformationElements {
-    pub fn read<R: Read>(reader: &mut R) -> InformationElements {
+impl<'a> InformationElements<'a> {
+    pub fn parse(data: &'a [u8]) -> InformationElements<'a>
+    {
         let mut elements = vec![];
+        let mut slice = data;
         loop {
-            match RawInformationElement::read(reader) {
-                Ok(ie) => elements.push(ie),
+            match RawInformationElement::parse(slice) {
+                Ok(ie) => {
+                    slice = &slice[(ie.data.len() + 2)..];
+                    elements.push(ie);
+                },
                 Err(_) => break,
             }
         }
@@ -41,7 +67,23 @@ impl InformationElements {
     }
 }
 
-#[derive(Debug, PartialEq)]
+pub struct Ssid
+{
+    pub ssid: String
+}
+
+impl Ssid {
+    pub fn parse(data: &[u8]) -> Result<Ssid, Error>
+    {
+        let ssid = ISO_8859_1.decode(data, DecoderTrap::Strict)
+            .or_else(|_| {
+                String::from_utf8(data.to_vec())
+            })?;
+        return Ok(Ssid { ssid: ssid });
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum CipherSuite {
     UseGroupCipherSuite,
     WiredEquivalentPrivacy40,
@@ -107,7 +149,7 @@ impl fmt::Display for CipherSuite {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AuthenticationKeyManagement {
     PairwiseMasterKeySecurityAssociation,
     PreSharedKey,
@@ -225,25 +267,20 @@ pub struct RobustSecurityNetwork {
 }
 
 impl RobustSecurityNetwork {
-    pub fn from_bytes(data: &[u8]) -> Result<RobustSecurityNetwork, Error> {
+    pub fn parse(data: &[u8]) -> Result<RobustSecurityNetwork, Error> {
         if data.len() > 12 {
-            let mut reader = io::Cursor::new(data);
-            let version = u16::read(&mut reader)?;
-            let value = u32::read(&mut reader)?;
+            let (version, data) = u16::unpack(data);
+            let (value, data) = u32::unpack(data);
             let suite = CipherSuite::from(value);
-            let count = u16::read(&mut reader)?;
-            let mut ciphers = vec![];
-            for _ in 0..count {
-                let value = u32::read(&mut reader)?;
-                ciphers.push(CipherSuite::from(value));
-            }
-            let count = u16::read(&mut reader)?;
-            let mut akms = vec![];
-            for _ in 0..count {
-                let value = u32::read(&mut reader)?;
-                akms.push(AuthenticationKeyManagement::from(value));
-            }
-            let count = u16::read(&mut reader)?;
+            let (count, data) = u16::unpack(data);
+            let (values, data) = unpack_vec::<u32>(data, count.into())?;
+            let ciphers = values.into_iter()
+                .map(|v| CipherSuite::from(v)).collect();
+            let (count, data) = u16::unpack(data);
+            let (values, data) = unpack_vec::<u32>(data, count.into())?;
+            let akms = values.into_iter()
+                .map(|v| AuthenticationKeyManagement::from(v)).collect();
+            let (count, _data) = u16::unpack(data);
             let ptksa_counters = match count & 0x000c {
                 0x0004 => 2,
                 0x0008 => 4,
@@ -266,7 +303,8 @@ impl RobustSecurityNetwork {
                 gtksa_counters: gtksa_counters,
             });
         }
-	    return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into());
+	    return Err(io::Error::new(io::ErrorKind::InvalidData,
+            "Invalid RSN element").into());
     }
 
     pub fn pmf_mode(&self) -> ProtectedManagementFramesMode
@@ -281,3 +319,195 @@ impl RobustSecurityNetwork {
     }
 }
 
+pub struct HighThroughputOperation
+{
+    pub width: u32,
+    pub primary_channel: u8,
+    pub secondary_channel: u8,
+}
+
+impl HighThroughputOperation {
+    pub fn parse(data: &[u8]) -> Result<HighThroughputOperation, Error> {
+        if data.len() == 22 {
+            let secondary_channel = match data[1] & 0x03 {
+                1 => data[0] + 1,
+                3 => data[0] - 1,
+                _ => 0,
+            };
+            let width = if data[1] & 0x04 == 0 { 20 } else { 40 };
+            // There are lots of other information in this IE
+            return Ok(HighThroughputOperation {
+                primary_channel: data[0],
+                secondary_channel: secondary_channel,
+                width: width,
+            });
+        }
+	    return Err(io::Error::new(io::ErrorKind::InvalidData,
+            "Invalid VHT element").into());
+    }
+}
+
+pub struct VeryHighThroughputOperation
+{
+    pub width: u32,
+    pub channel: u8,
+    pub secondary_channel: u8,
+}
+
+impl VeryHighThroughputOperation {
+    pub fn parse(data: &[u8]) -> Result<VeryHighThroughputOperation, Error> {
+        if data.len() == 5 {
+            let width = match data[0] & 0x03 {
+                1 => 80,
+                2 => 160,
+                3 => 80,
+                _ => 40,
+            };
+            // Skipping VHT-MCS set, 2 octets
+            return Ok(VeryHighThroughputOperation {
+                width: width,
+                channel: data[1],
+                secondary_channel: data[2],
+            });
+        }
+	    return Err(io::Error::new(io::ErrorKind::InvalidData,
+            "Invalid VHT element").into());
+    }
+}
+
+pub enum ChannelSwitchMode {
+    NoRestriction = 0,
+    NoTransmission = 1,
+}
+
+impl From<u8> for ChannelSwitchMode {
+    fn from(v: u8) -> Self
+    {
+        match v {
+            1 => ChannelSwitchMode::NoRestriction,
+            _ => ChannelSwitchMode::NoTransmission,
+        }
+    }
+}
+
+pub struct ExtendedChannelSwitchAnnouncement {
+    pub switch_mode: ChannelSwitchMode,
+    pub new_operating_class: u8,
+    pub new_channel: u8,
+    pub switch_count: u8,
+}
+
+impl ExtendedChannelSwitchAnnouncement {
+    pub fn parse(data: &[u8])
+        -> Result<ExtendedChannelSwitchAnnouncement, Error>
+    {
+        if data.len() == 4 {
+            return Ok(ExtendedChannelSwitchAnnouncement {
+                switch_mode: ChannelSwitchMode::from(data[0]),
+                new_operating_class: data[1],
+                new_channel: data[2],
+                switch_count: data[3]
+            });
+        }
+	    return Err(io::Error::new(io::ErrorKind::InvalidData,
+            "Invalid ECSA element").into());
+    }
+}
+
+pub enum InformationElement<'a> {
+    Ssid(Ssid),
+    RobustSecurityNetwork(RobustSecurityNetwork),
+    HighThroughputOperation(HighThroughputOperation),
+    VeryHighThroughputOperation(VeryHighThroughputOperation),
+    Other(RawInformationElement<'a>),
+}
+
+impl<'a> InformationElement<'a> {
+    pub fn parse(data: &'a [u8]) -> Result<InformationElement<'a>, Error>
+    {
+        let raw = RawInformationElement::parse(data)?;
+        let id = InformationElementId::convert_from(raw.identifier);
+        if let Some(id) = id {
+            return Self::from(id, raw.data);
+        }
+        else {
+            return Ok(InformationElement::Other(raw));
+        }
+    }
+
+    pub fn from(id: InformationElementId, data: &'a [u8])
+        -> Result<InformationElement<'a>, Error>
+    {
+        let ie = match id {
+            InformationElementId::Ssid => {
+                let ie = Ssid::parse(data)?;
+                InformationElement::Ssid(ie)
+            },
+            InformationElementId::HighThroughputOperation => {
+                let ie = HighThroughputOperation::parse(data)?;
+                InformationElement::HighThroughputOperation(ie)
+            },
+            InformationElementId::VeryHighThroughputOperation => {
+                let ie = VeryHighThroughputOperation::parse(data)?;
+                InformationElement::VeryHighThroughputOperation(ie)
+            },
+            InformationElementId::RobustSecurityNetwork => {
+                let ie = RobustSecurityNetwork::parse(data)?;
+                InformationElement::RobustSecurityNetwork(ie)
+            }
+            _ => {
+                InformationElement::Other(
+                    RawInformationElement { identifier: id.into(),data: data }
+                )
+            }
+        };
+        Ok(ie)
+    }
+
+    pub fn parse_all(data: &'a [u8])
+        -> Result<Vec<InformationElement<'a>>, Error>
+    {
+        let mut ies = vec![];
+        let mut slice = data;
+        loop {
+            let raw = match RawInformationElement::parse(slice) {
+                Ok(raw) => raw,
+                Err(_) => break,
+            };
+            slice = &slice[raw.data.len() + 2..];
+            let id = InformationElementId::convert_from(raw.identifier);
+            let ie = if let Some(id) = id {
+                Self::from(id, raw.data)?
+            }
+            else {
+                InformationElement::Other(raw)
+            };
+            ies.push(ie);
+        }
+        return Ok(ies);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_ie() {
+        let bytes = [48, 6, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06];
+        let ie = RawInformationElement::parse(&bytes).unwrap();
+        assert_eq!(ie.identifier, 48u8);
+        assert_eq!(ie.data.len(), 6);
+        assert_eq!(ie.data, &bytes[2..]);
+    }
+
+    #[test]
+    fn test_parse_ies() {
+        let bytes = [
+            48, 6, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+            4, 0,
+            1, 2, 0x55, 0xaa, ];
+        let ies = InformationElements::parse(&bytes);
+        assert_eq!(ies.elements.len(), 3);
+    }
+}
