@@ -4,12 +4,15 @@
  - AKM, Authentication Key Management
  - BIP, Broadcast/Multicast Integrity Protocol
  - BSS, Basic Service Set
+ - CAC, Channel Available Check
  - CCMP, Counter Mode Cipher Block Chaining Message Authentication Code
          Protocol, Counter Mode CBC-MAC Protocol, CCM mode protocol
  - CF, Contention Free
  - CQM, Connection Quanlity Monitor
+ - DFS, Dynamic Frequency Selection
  - DS, Direct Spectrum
  - FH, Frequency Hopping
+ - EIRP, Effective Isotropic Radiated Power
  - ERP, Extended Rate PHY
  - FT, Fast Transition
  - IBSS, Independent BSS, Ad-hoc network
