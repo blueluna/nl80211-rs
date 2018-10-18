@@ -273,11 +273,11 @@ impl RobustSecurityNetwork {
             let (value, data) = u32::unpack(data);
             let suite = CipherSuite::from(value);
             let (count, data) = u16::unpack(data);
-            let (values, data) = unpack_vec::<u32>(data, count.into())?;
+            let (values, data) = unpack_vec::<u32>(data, count as usize)?;
             let ciphers = values.into_iter()
                 .map(|v| CipherSuite::from(v)).collect();
             let (count, data) = u16::unpack(data);
-            let (values, data) = unpack_vec::<u32>(data, count.into())?;
+            let (values, data) = unpack_vec::<u32>(data, count as usize)?;
             let akms = values.into_iter()
                 .map(|v| AuthenticationKeyManagement::from(v)).collect();
             let (count, _data) = u16::unpack(data);
