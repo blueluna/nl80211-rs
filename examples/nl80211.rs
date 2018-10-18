@@ -5,7 +5,7 @@ extern crate clap;
 extern crate nl80211_rs;
 
 use std::io;
-use std::io::{Read, Write};
+use std::io::{Write};
 use std::fmt;
 use std::convert::{From};
 use std::os::unix::io::AsRawFd;
@@ -16,7 +16,7 @@ use mio::unix::EventedFd;
 
 use netlink_rust as netlink;
 use netlink_rust::{HardwareAddress, Socket, Protocol, Message,
-    MessageMode, Error, NativeRead, ConvertFrom};
+    MessageMode, Error, NativeParse, ConvertFrom};
 use netlink_rust::generic;
 
 use nl80211_rs as nl80211;
@@ -437,18 +437,15 @@ impl Monitor {
                                         nl80211::Attribute::Frame => {
                                             let data = &attr.as_bytes();
                                             show_slice(&data);
-                                            let mut hwa = [0u8; 6];
-                                            // See 8.2.3 in 802.11-2012.pdf
-                                            let mut reader = io::Cursor::new(&data);
-                                            let frame_control = u16::read(&mut reader)?;
-                                            let duration_id = u16::read(&mut reader)?;
-                                            reader.read_exact(&mut hwa)?;
-                                            let da = HardwareAddress::from(&hwa[..]);
-                                            reader.read_exact(&mut hwa)?;
-                                            let sa = HardwareAddress::from(&hwa[..]);
-                                            reader.read_exact(&mut hwa)?;
-                                            let bssid = HardwareAddress::from(&hwa[..]);
-                                            println!("{:04x} {:04x} {} {} {}", frame_control, duration_id, da, sa, bssid);
+                                            if data.len() > 22 {
+                                                // See 8.2.3 in 802.11-2012.pdf
+                                                let frame_control = u16::parse_unchecked(&data);
+                                                let duration_id = u16::parse_unchecked(&data[2..]);
+                                                let da = HardwareAddress::parse_unchecked(&data[4..]);
+                                                let sa = HardwareAddress::parse_unchecked(&data[10..]);
+                                                let bssid = HardwareAddress::parse_unchecked(&data[16..]);
+                                                println!("{:04x} {:04x} {} {} {}", frame_control, duration_id, da, sa, bssid);
+                                            }
                                         },
                                         _ => (),
                                     }
