@@ -1,6 +1,6 @@
-# Experiments with nl80211 in Rust
+# nl80211 in Rust
 
-Licensed under the MIT license.
+Handling nl80211, IEEE 802.11 Netlink protocol, in Rust. Work in progress.
 
 ## Example
 
@@ -17,4 +17,17 @@ It is also possible to initiate a scan as super user.
 sudo ./target/release/examples/nl80211 scan
 ```
 
-[![Build Status](https://travis-ci.org/blueluna/nl80211-rs.svg?branch=master)](https://travis-ci.org/blueluna/nl80211-rs)
+## Compatability
+
+Rust 1.20.0 or later is needed.
+
+Tested on following platforms,
+ - Linux 4.18 x86_64, Fedora 28
+ - Linux 4.1 ARMv7
+ - Linux 4.9 AArch64
+
+## License
+
+ Licensed under the MIT license.
+
+[![Build Status](https://travis-ci.org/blueluna/nl80211-rs.svg?branch=master)](https://travis-ci.org/blueluna/nl80211-rs) [![Crates.io](https://img.shields.io/crates/v/nl80211-rs.svg)](https://crates.io/crates/nl80211-rs)

@@ -128,7 +128,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut channel_2 = 0;
     let mut channel_width = 0;
     let mut status = AccessPointStatus::None;
-    let attrs = netlink::read_attributes(&mut io::Cursor::new(data));
+    let (_, attrs) = netlink::Attribute::parse_all(&data);
     let mut ciphers = vec![];
     let mut akms = vec![];
     let mut pmf = ProtectedManagementFramesMode::Disabled;
@@ -306,7 +306,7 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
                 match message {
                     Message::Data(m) => {
                         if m.header.identifier ==  wireless_device.family.id {
-                            let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
+                            let (_, msg) = generic::Message::parse(&m.data)?;
                             aps.push(parse_scan_result(&msg)?);
                         }
                         else {
@@ -418,7 +418,7 @@ impl Monitor {
             match message {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.device.family.id {
-                        let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
+                        let (_, msg) = generic::Message::parse(&m.data)?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => (),
@@ -473,7 +473,7 @@ impl Monitor {
             match message {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.device.family.id {
-                        let msg = generic::Message::read(&mut io::Cursor::new(m.data))?;
+                        let (_, msg) = generic::Message::parse(&m.data)?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => {},
@@ -573,6 +573,7 @@ fn main() {
         println!("Need to be root");
         return;
     }
+
     let mut control_socket = Socket::new(Protocol::Generic)
         .expect("Failed to open control socket");
     let family = generic::Family::from_name(&mut control_socket, "nl80211")
