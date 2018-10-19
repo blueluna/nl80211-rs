@@ -16,7 +16,7 @@ use mio::unix::EventedFd;
 
 use netlink_rust as netlink;
 use netlink_rust::{HardwareAddress, Socket, Protocol, Message,
-    MessageMode, Error, NativeParse, ConvertFrom};
+    MessageMode, Error, NativeUnpack, ConvertFrom};
 use netlink_rust::generic;
 
 use nl80211_rs as nl80211;
@@ -128,7 +128,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut channel_2 = 0;
     let mut channel_width = 0;
     let mut status = AccessPointStatus::None;
-    let (_, attrs) = netlink::Attribute::parse_all(&data);
+    let (_, attrs) = netlink::Attribute::unpack_all(&data);
     let mut ciphers = vec![];
     let mut akms = vec![];
     let mut pmf = ProtectedManagementFramesMode::Disabled;
@@ -306,7 +306,7 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
                 match message {
                     Message::Data(m) => {
                         if m.header.identifier ==  wireless_device.family.id {
-                            let (_, msg) = generic::Message::parse(&m.data)?;
+                            let (_, msg) = generic::Message::unpack(&m.data)?;
                             aps.push(parse_scan_result(&msg)?);
                         }
                         else {
@@ -418,7 +418,7 @@ impl Monitor {
             match message {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.device.family.id {
-                        let (_, msg) = generic::Message::parse(&m.data)?;
+                        let (_, msg) = generic::Message::unpack(&m.data)?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => (),
@@ -439,11 +439,11 @@ impl Monitor {
                                             show_slice(&data);
                                             if data.len() > 22 {
                                                 // See 8.2.3 in 802.11-2012.pdf
-                                                let frame_control = u16::parse_unchecked(&data);
-                                                let duration_id = u16::parse_unchecked(&data[2..]);
-                                                let da = HardwareAddress::parse_unchecked(&data[4..]);
-                                                let sa = HardwareAddress::parse_unchecked(&data[10..]);
-                                                let bssid = HardwareAddress::parse_unchecked(&data[16..]);
+                                                let frame_control = u16::unpack_unchecked(&data);
+                                                let duration_id = u16::unpack_unchecked(&data[2..]);
+                                                let da = HardwareAddress::unpack_unchecked(&data[4..]);
+                                                let sa = HardwareAddress::unpack_unchecked(&data[10..]);
+                                                let bssid = HardwareAddress::unpack_unchecked(&data[16..]);
                                                 println!("{:04x} {:04x} {} {} {}", frame_control, duration_id, da, sa, bssid);
                                             }
                                         },
@@ -470,7 +470,7 @@ impl Monitor {
             match message {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.device.family.id {
-                        let (_, msg) = generic::Message::parse(&m.data)?;
+                        let (_, msg) = generic::Message::unpack(&m.data)?;
                         let command = nl80211::Command::from(msg.command);
                         match command {
                             nl80211::Command::TriggerScan => {},

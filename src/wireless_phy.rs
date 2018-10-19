@@ -23,7 +23,7 @@ impl WirelessPhy {
                     phy_id = Some(attr.as_u32()?);
                 }
                 Attribute::SupportedCommands => {
-                    let (_, attrs) = netlink::Attribute::parse_all(
+                    let (_, attrs) = netlink::Attribute::unpack_all(
                         &attr.as_bytes());
                     for attr in attrs {
                         match Command::convert_from(attr.as_u32()? as u8) {
@@ -74,7 +74,7 @@ pub fn get_wireless_phys(socket: &mut netlink::Socket, family_id: u16) -> Result
                 match message {
                     netlink::Message::Data(m) => {
                         if m.header.identifier == family_id {
-                            let (_, gmsg) = generic::Message::parse(&m.data)?;
+                            let (_, gmsg) = generic::Message::unpack(&m.data)?;
                             match WirelessPhy::from_message(gmsg) {
                                 Ok(phy) => phys.push(phy),
                                 Err(_) => (),

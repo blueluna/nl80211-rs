@@ -2,7 +2,7 @@ use std::fmt;
 use std::mem;
 use std::io;
 use netlink_rust::{Socket, Attribute, Message, MessageMode, HardwareAddress,
-    Error, NativeParse};
+    Error, NativeUnpack};
 use netlink_rust::generic;
 use attributes;
 use commands::Command;
@@ -24,10 +24,10 @@ pub fn read_attribute_list(data: &[u8]) -> Vec<Attribute>
     let mut attrs = vec![];
     let mut d = &data[..];
     while d.len() > (vs * 2) {
-        let size = u16::parse(&d).unwrap();
-        let _index = u16::parse(&d[vs..]).unwrap();
+        let size = u16::unpack(&d).unwrap();
+        let _index = u16::unpack(&d[vs..]).unwrap();
         if d.len() > size as usize {
-            let (_, mut ats) = Attribute::parse_all(
+            let (_, mut ats) = Attribute::unpack_all(
                 &d[(vs * 2)..size as usize]);
             attrs.append(&mut ats);
         }
@@ -394,7 +394,7 @@ impl WirelessInterface {
             for message in messages {
                 match message {
                     Message::Data(m) => {
-                        let (_, msg) = generic::Message::parse(&m.data)?;
+                        let (_, msg) = generic::Message::unpack(&m.data)?;
                         let command = Command::from(msg.command);
                         println!("Command: {:?}", command);
                         for ref attr in &msg.attributes {
@@ -479,7 +479,7 @@ pub fn get_wireless_interfaces(socket: &mut Socket, family: generic::Family) -> 
             match message {
                 Message::Data(m) => {
                     if m.header.identifier == family.id {
-                        let (_, gmsg) = generic::Message::parse(&m.data)?;
+                        let (_, gmsg) = generic::Message::unpack(&m.data)?;
                         match WirelessInterface::from_message(gmsg, family.clone()) {
                             Ok(wi) => devices.push(wi),
                             Err(_) => (),

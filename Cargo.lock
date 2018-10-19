@@ -230,7 +230,7 @@ dependencies = [
 [[package]]
 name = "netlink-rust"
 version = "0.1.1"
-source = "git+https://github.com/blueluna/netlink-rs#70a4343e0f4005e448a148d27e38f0ad6bf3ec9b"
+source = "git+https://github.com/blueluna/netlink-rs#891850e31bbb72f0a4aa0b0e83a4300051c52e8e"
 dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
