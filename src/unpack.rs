@@ -1,80 +1,94 @@
 use std::mem;
-use std::str;
-use netlink_rust::{Error};
-use byteorder::{ByteOrder, NativeEndian};
+use std::io;
+
+use byteorder::{ByteOrder, LittleEndian};
+
+use netlink_rust::{Result, HardwareAddress};
 
 /// Trait for unpacking values from byte stream
-pub trait Unpack: Sized {
-    fn unpack(data: &[u8]) -> (Self, &[u8]);
+pub trait LittleUnpack: Sized {
+    fn unpack(buffer: &[u8]) -> Result<Self>
+    {
+        Self::unpack_with_size(buffer).and_then(|r| Ok(r.1))
+    }
+    fn unpack_with_size(buffer: &[u8]) -> Result<(usize, Self)>
+    {
+        let size = mem::size_of::<Self>();
+        if buffer.len() < size {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
+        }
+        Ok((mem::size_of::<Self>(), Self::unpack_unchecked(buffer)))
+    }
+    fn unpack_unchecked(buffer: &[u8]) -> Self;
 }
 
-impl Unpack for u8 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (data[0], &data[1..]);
+impl LittleUnpack for u8 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        data[0]
     }
 }
 
-impl Unpack for u16 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (NativeEndian::read_u16(data), &data[2..]);
+impl LittleUnpack for u16 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        LittleEndian::read_u16(data)
     }
 }
 
-impl Unpack for u32 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (NativeEndian::read_u32(data), &data[4..]);
+impl LittleUnpack for u32 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        LittleEndian::read_u32(data)
     }
 }
 
-impl Unpack for u64 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (NativeEndian::read_u64(data), &data[8..]);
+impl LittleUnpack for u64 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        LittleEndian::read_u64(data)
     }
 }
 
-impl Unpack for i8 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (data[0] as i8, &data[1..]);
+impl LittleUnpack for i8 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        data[0] as i8
     }
 }
 
-impl Unpack for i16 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
+impl LittleUnpack for i16 {
+    fn unpack_unchecked(data: &[u8]) -> Self
     {
-        return (NativeEndian::read_i16(data), &data[2..]);
+        LittleEndian::read_i16(data)
     }
 }
 
-impl Unpack for i32 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
-    {
-        return (NativeEndian::read_i32(data), &data[4..]);
+impl LittleUnpack for i32 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        LittleEndian::read_i32(data)
     }
 }
 
-impl Unpack for i64 {
-    fn unpack(data: &[u8]) -> (Self, &[u8])
+impl LittleUnpack for i64 {
+    fn unpack_unchecked(data: &[u8]) -> Self {
+        LittleEndian::read_i64(data)
+    }
+}
+impl LittleUnpack for HardwareAddress {
+    fn unpack_unchecked(buffer: &[u8]) -> Self
     {
-        return (NativeEndian::read_i64(data), &data[8..]);
+        HardwareAddress::from(&buffer[0..6])
     }
 }
 
-pub fn unpack_vec<T: Unpack>(data: &[u8], size: usize)
-    -> Result<(Vec<T>, &[u8]), Error>
+pub fn unpack_vec<T: LittleUnpack>(data: &[u8], size: usize)
+    -> Result<(usize, Vec<T>)>
 {
     let mut items = vec![];
-    let r = (0, data);
+    let mut pos = 0;
     for _ in 0..size {
-        let r = T::unpack(r.1);
-        items.push(r.0);
+        let (offset, item) = T::unpack_with_size(&data[pos..])?;
+        items.push(item);
+        pos += offset;
     }
     let octets = mem::size_of::<T>() * size;
-    Ok((items, &data[octets..]))
+    Ok((octets, items))
 }
 
 /// Find the last non-zero byte
@@ -87,100 +101,49 @@ fn c_string_length(c_string: &[u8]) -> usize
     }
 }
 
-/// Unpack zero byte terminated string from byte buffer of provided size
-#[allow(dead_code)]
-pub fn unpack_c_string(data: &[u8], size: usize)
-    -> Result<(String, &[u8]), Error>
-{
-    let string_length = c_string_length(&data[..size]);
-    let s = str::from_utf8(&data[..string_length])?;
-    Ok((String::from(s), &data[size..]))
-}
-
-/// Unpack sized string from byte buffer of provided size
-#[allow(dead_code)]
-pub fn unpack_string(data: &[u8], size: usize, buffer_size: usize)
-    -> Result<(String, &[u8]), Error>
-{
-    let s = str::from_utf8(&data[..size])?;
-    Ok((String::from(s), &data[buffer_size..]))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn unpack_u8() {
-        let (v, s) = u8::unpack(&[0xff, 1, 2, 3]);
+        let data = [0xff, 1, 2, 3];
+        let v = u8::unpack(&data).unwrap();
         assert_eq!(v, 255u8);
-        let (v, s) = u8::unpack(s);
+        let (s, v) = u8::unpack_with_size(&data[1..]).unwrap();
+        assert_eq!(s, 1usize);
         assert_eq!(v, 1u8);
-        let (v, s) = u8::unpack(s);
-        assert_eq!(v, 2u8);
-        let (v, _) = u8::unpack(s);
-        assert_eq!(v, 3u8);
     }
     
     #[test]
     fn unpack_u16() {
-        let (v, s) = u16::unpack(&[0xff, 1, 2, 3]);
+        let v = u16::unpack(&[0xff, 1, 2, 3]).unwrap();
         assert_eq!(v, 0x01ffu16);
-        let (v, _) = u16::unpack(s);
-        assert_eq!(v, 0x0302u16);
     }
     
     #[test]
     fn unpack_u32() {
-        let (v, s) = u32::unpack(&[0, 1, 2, 3, 0xff, 0xee, 0xdd, 0xcc]);
+        let v = u32::unpack(&[0, 1, 2, 3, 0xff, 0xee, 0xdd, 0xcc]).unwrap();
         assert_eq!(v, 0x03020100u32);
-        let (v, _) = u32::unpack(s);
-        assert_eq!(v, 0xccddeeffu32);
     }
     
     #[test]
     fn unpack_u64() {
-        let (v, s) = u64::unpack(&[
+        let v = u64::unpack(&[
             0, 1, 2, 3, 0xff, 0xee, 0xdd, 0xcc,
             0x55, 0xaa, 0, 1, 2, 3, 4, 5
-            ]);
+            ]).unwrap();
         assert_eq!(v, 0xccddeeff03020100u64);
-        let (v, _) = u64::unpack(s);
-        assert_eq!(v, 0x050403020100aa55u64);
     }
     
     #[test]
     fn unpack_vector() {
-        let (v, s) = unpack_vec::<u16>(&[
+        let (s, v) = unpack_vec::<u16>(&[
             0, 1, 2, 3, 0xff, 0xee, 0xdd, 0xcc,
             0x55, 0xaa, 0, 1, 2, 3, 4, 5
             ], 4).unwrap();
         assert_eq!(v.len(), 4);
         assert_eq!(v[0], 0x0100u16);
-        assert_eq!(s[0], 0x55);
-    }
-
-    #[test]
-    fn unpack_c_strings() {
-        let (s, _) = unpack_c_string(&"ABCD\0".as_bytes(), 5).unwrap();
-        assert_eq!(s, "ABCD");
-
-        let (s, _) = unpack_c_string(&"ABC\0\0\0".as_bytes(), 6).unwrap();
-        assert_eq!(s, "ABC");
-
-        let (s, _) = unpack_c_string(&"\0\0\0".as_bytes(), 3).unwrap();
-        assert_eq!(s, "");
-    }
-
-    #[test]
-    fn unpack_strings() {
-        let (s, _) = unpack_string(&"ABC\0\0".as_bytes(), 3, 5).unwrap();
-        assert_eq!(s, "ABC");
-
-        let (s, _) = unpack_string(&"\0\0\0".as_bytes(), 0, 3).unwrap();
-        assert_eq!(s, "");
-
-        let (s, _) = unpack_string(&"\0\0\0".as_bytes(), 1, 3).unwrap();
-        assert_eq!(s, "\0");
+        assert_eq!(s, 8);
     }
 }

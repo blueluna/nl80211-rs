@@ -17,7 +17,7 @@ use encoding::{Encoding, DecoderTrap};
 use encoding::all::ISO_8859_1;
 
 use netlink_rust::{Error, ConvertFrom};
-use unpack::{Unpack, unpack_vec};
+use unpack::{LittleUnpack, unpack_vec};
 use information_element_ids::InformationElementId;
 
 pub struct RawInformationElement<'a>
@@ -31,14 +31,14 @@ impl<'a> RawInformationElement<'a> {
         if data.len() < 2 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
         }
-        let (identifier, data) = u8::unpack(data);
-        let (length, data) = u8::unpack(data);
+        let identifier = u8::unpack_unchecked(data);
+        let length = u8::unpack_unchecked(&data[1..]);
         let length = length as usize;
         if data.len() < length {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
         }
         Ok(RawInformationElement { identifier: identifier,
-            data: &data[..length] })
+            data: &data[2..(length + 2)] })
     }
 }
 
@@ -268,19 +268,24 @@ pub struct RobustSecurityNetwork {
 
 impl RobustSecurityNetwork {
     pub fn parse(data: &[u8]) -> Result<RobustSecurityNetwork, Error> {
-        if data.len() > 12 {
-            let (version, data) = u16::unpack(data);
-            let (value, data) = u32::unpack(data);
+        if data.len() > 8 {
+            let version = u16::unpack_unchecked(data);
+            let value = u32::unpack_unchecked(&data[2..]);
             let suite = CipherSuite::from(value);
-            let (count, data) = u16::unpack(data);
-            let (values, data) = unpack_vec::<u32>(data, count as usize)?;
+            let count = u16::unpack_unchecked(&data[6..]);
+            let (used, values) = unpack_vec::<u32>(&data[8..],
+                count as usize)?;
+            let mut offset = 8 + used;
             let ciphers = values.into_iter()
                 .map(|v| CipherSuite::from(v)).collect();
-            let (count, data) = u16::unpack(data);
-            let (values, data) = unpack_vec::<u32>(data, count as usize)?;
+            let (used, count) = u16::unpack_with_size(&data[offset..])?;
+            offset += used;
+            let (used, values) = unpack_vec::<u32>(&data[offset..],
+                count as usize)?;
+            offset += used;
             let akms = values.into_iter()
                 .map(|v| AuthenticationKeyManagement::from(v)).collect();
-            let (count, _data) = u16::unpack(data);
+            let (_used, count) = u16::unpack_with_size(&data[offset..])?;
             let ptksa_counters = match count & 0x000c {
                 0x0004 => 2,
                 0x0008 => 4,

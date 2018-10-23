@@ -16,7 +16,7 @@ use mio::unix::EventedFd;
 
 use netlink_rust as netlink;
 use netlink_rust::{HardwareAddress, Socket, Protocol, Message,
-    MessageMode, Error, NativeUnpack, ConvertFrom};
+    MessageMode, Error, ConvertFrom};
 use netlink_rust::generic;
 
 use nl80211_rs as nl80211;
@@ -25,6 +25,7 @@ use nl80211_rs::InformationElement;
 
 use clap::{Arg, App, SubCommand};
 
+#[allow(dead_code)]
 fn show_slice(slice: &[u8])
 {
     print!("{} bytes\n", slice.len());
@@ -428,6 +429,11 @@ impl Monitor {
                                     MessageMode::Dump)?;
                                 self.control_socket.send_message(&tx_msg)?;
                             }
+                            nl80211::Command::GetRegulatory => {
+                                let info =
+                                    nl80211::RegulatoryInformation::from_message(&msg)?;
+                                println!("{}", info);
+                            }
                             _ => {
                                 println!("Command: {:?}", command);
                                 for ref attr in &msg.attributes {
@@ -435,17 +441,8 @@ impl Monitor {
                                     println!("Attribute: {:?} Len: {}", attr_id, attr.len());
                                     match attr_id {
                                         nl80211::Attribute::Frame => {
-                                            let data = &attr.as_bytes();
-                                            show_slice(&data);
-                                            if data.len() > 22 {
-                                                // See 8.2.3 in 802.11-2012.pdf
-                                                let frame_control = u16::unpack_unchecked(&data);
-                                                let duration_id = u16::unpack_unchecked(&data[2..]);
-                                                let da = HardwareAddress::unpack_unchecked(&data[4..]);
-                                                let sa = HardwareAddress::unpack_unchecked(&data[10..]);
-                                                let bssid = HardwareAddress::unpack_unchecked(&data[16..]);
-                                                println!("{:04x} {:04x} {} {} {}", frame_control, duration_id, da, sa, bssid);
-                                            }
+                                            let frame = Frame::unpack(&attr.as_bytes())?;
+                                            println!("{}", frame);
                                         },
                                         _ => (),
                                     }

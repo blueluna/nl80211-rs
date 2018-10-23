@@ -14,9 +14,11 @@ mod commands;
 mod attributes;
 mod information_element;
 mod information_element_ids;
+mod regulatory;
 mod wireless_interface;
 mod wireless_phy;
 mod unpack;
+mod frame;
 
 pub use commands::Command;
 pub use attributes::{Attribute, BssAttribute};
@@ -28,3 +30,5 @@ pub use information_element_ids::InformationElementId;
 pub use wireless_interface::{WirelessDeviceId, WirelessInterface,
     get_wireless_interfaces};
 pub use wireless_phy::get_wireless_phys;
+pub use frame::Frame;
+pub use regulatory::RegulatoryInformation;

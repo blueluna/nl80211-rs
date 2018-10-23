@@ -2,6 +2,7 @@
 
  - ACL, Access Control Lists
  - AKM, Authentication Key Management
+ - ATIM, Announcement Traffic Indication Message
  - BIP, Broadcast/Multicast Integrity Protocol
  - BSS, Basic Service Set
  - CAC, Channel Available Check

@@ -1812,36 +1812,6 @@
           "data_length": 0
         }
       }
-    },
-    "DynamicFrequencySelectionRegions": {
-      "original_name": "nl80211_dfs_regions",
-      "value_type": "u8",
-      "items": {
-        "Unset": {
-          "value": 0,
-          "original_name": "NL80211_DFS_UNSET",
-          "data_type": "bytes",
-          "data_length": 0
-        },
-        "FCC": {
-          "value": 1,
-          "original_name": "NL80211_DFS_FCC",
-          "data_type": "bytes",
-          "data_length": 0
-        },
-        "ETSI": {
-          "value": 2,
-          "original_name": "NL80211_DFS_ETSI",
-          "data_type": "bytes",
-          "data_length": 0
-        },
-        "Japan": {
-          "value": 3,
-          "original_name": "NL80211_DFS_JP",
-          "data_type": "bytes",
-          "data_length": 0
-        }
-      }
     }
   }
 }
