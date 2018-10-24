@@ -21,7 +21,7 @@ mod unpack;
 mod frame;
 
 pub use commands::Command;
-pub use attributes::{Attribute, BssAttribute};
+pub use attributes::{Attribute, BssAttribute, InterfaceType};
 pub use information_element::{InformationElement, InformationElements,
     RobustSecurityNetwork, CipherSuite, AuthenticationKeyManagement,
     ProtectedManagementFramesMode, HighThroughputOperation,
@@ -31,4 +31,5 @@ pub use wireless_interface::{WirelessDeviceId, WirelessInterface,
     get_wireless_interfaces};
 pub use wireless_phy::get_wireless_phys;
 pub use frame::Frame;
-pub use regulatory::{RegulatoryInformation, RegulatoryChange};
+pub use regulatory::{RegulatoryChange, RegulatoryInformation,
+    RegulatoryInitiator, RegulatoryRegion};

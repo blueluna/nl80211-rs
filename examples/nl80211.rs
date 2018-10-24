@@ -413,6 +413,138 @@ impl Monitor {
         }
     }
 
+    fn device_id_from_attributes(attributes: &Vec<netlink_rust::Attribute>)
+        -> Result<WirelessDeviceId, Error>
+    {
+        let mut interface_index = None;
+        let mut device_identifier = None;
+        for attr in attributes {
+            let id = nl80211::Attribute::from(attr.identifier);
+            match id {
+                nl80211::Attribute::Ifindex => {
+                    interface_index = Some(attr.as_u32()?);
+                }
+                nl80211::Attribute::Wdev => {
+                    device_identifier = Some(attr.as_u64()?);
+                }
+                _ => (),
+            }
+            if interface_index.is_some() && device_identifier.is_some() {
+                break;
+            }
+        }
+        if device_identifier.is_some() {
+            return Ok(WirelessDeviceId::DeviceIdentifier(
+                device_identifier.unwrap()));
+        }
+        if interface_index.is_some() {
+            return Ok(WirelessDeviceId::InterfaceIndex(
+                interface_index.unwrap()));
+        }
+        Ok(WirelessDeviceId::None)
+    }
+
+    fn handle_event_nl80211_message(&mut self, message: &generic::Message)
+        -> Result<(), Error>
+    {
+        let command = nl80211::Command::from(message.command);
+        let device_id = Self::device_id_from_attributes(&message.attributes)?;
+        match command {
+            nl80211::Command::TriggerScan => (),
+            nl80211::Command::NewScanResults => {
+                let tx_msg = self.device.prepare_message(
+                    nl80211::Command::GetScan,
+                    MessageMode::Dump)?;
+                self.control_socket.send_message(&tx_msg)?;
+            }
+            nl80211::Command::GetRegulatory => {
+                let info =
+                    nl80211::RegulatoryInformation::from_message(&message)?;
+                println!("[{}] Regulatory Domain\n{}", device_id, info);
+            }
+            nl80211::Command::RegulatoryChange => {
+                let change =
+                    nl80211::RegulatoryChange::from_message(&message)?;
+                println!("[{}] Regulatory Change {}", device_id, change);
+            }
+            nl80211::Command::Connect => {
+                for ref attr in &message.attributes {
+                    let id = nl80211::Attribute::from(
+                        attr.identifier);
+                    match id {
+                        nl80211::Attribute::StatusCode => {
+                            let status = attr.as_u16()?;
+                            if status == 0 {
+                                println!("[{}] Connect status: OK", device_id);
+                            }
+                            else {
+                                println!("[{}] Connect status: {}", device_id,
+                                    status);
+                            }
+                        },
+                        _ => (),
+                    }
+                }
+            }
+            nl80211::Command::Disconnect => {
+                println!("[{}] Disconnect", device_id);
+            }
+            _ => {
+                println!("[{}] Event Command: {:?}", device_id, command);
+                for ref attr in &message.attributes {
+                    let attr_id = nl80211::Attribute::from(attr.identifier);
+                    match attr_id {
+                        nl80211::Attribute::Generation => (),
+                        nl80211::Attribute::Ifindex => (),
+                        nl80211::Attribute::Wdev => (),
+                        nl80211::Attribute::Wiphy => (),
+                        nl80211::Attribute::Iftype => {
+                            let if_type = nl80211::InterfaceType::from(
+                                attr.as_u32().unwrap_or(0));
+                            println!("  Attribute: Interface Type: {:?}",
+                                if_type);
+                        }
+                        Attribute::RegAlpha2 => {
+                            let country = attr.as_string()
+                                .unwrap_or(String::new());
+                            println!("  Attribute: Country: {}", country);
+                        }
+                        Attribute::RegType => {
+                            let region = attr.as_u8().unwrap_or(0);
+                            let region = RegulatoryRegion::from(region);
+                            println!("  Attribute: Regulatory Region: {:?}",
+                                region);
+                        }
+                        Attribute::RegInitiator => {
+                            let initiator = attr.as_u8().unwrap_or(0);
+                            let initiator =
+                                RegulatoryInitiator::from(initiator);
+                            println!("  Attribute: Regulatory Initiator: {:?}",
+                                initiator);
+                        }
+                        nl80211::Attribute::Mac => {
+                            let hw = attr.as_hardware_address()?;
+                            println!("  Attribute: MAC: {}", hw);
+                        }
+                        nl80211::Attribute::Frame => {
+                            let frame = Frame::unpack(&attr.as_bytes())?;
+                            println!("  Attribute: Frame: {}", frame);
+                        }
+                        nl80211::Attribute::WiphyTxPowerLevel => {
+                            println!("  Attribute: Tx Power: {:6.3} dBm",
+                                attr.as_u32().unwrap_or(0) as f64 / 1000.0);
+                        }
+                        _ => {
+                            println!("  Attribute: {:?} Len: {}",
+                                attr_id, attr.len());
+                        },
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn handle_event_messages(&mut self, messages: Vec<Message>) -> Result<(), Error>
     {
         for message in messages {
@@ -420,61 +552,7 @@ impl Monitor {
                 Message::Data(m) => {
                     if m.header.identifier ==  self.device.family.id {
                         let (_, msg) = generic::Message::unpack(&m.data)?;
-                        let command = nl80211::Command::from(msg.command);
-                        match command {
-                            nl80211::Command::TriggerScan => (),
-                            nl80211::Command::NewScanResults => {
-                                let tx_msg = self.device.prepare_message(
-                                    nl80211::Command::GetScan,
-                                    MessageMode::Dump)?;
-                                self.control_socket.send_message(&tx_msg)?;
-                            }
-                            nl80211::Command::GetRegulatory => {
-                                let info =
-                                    nl80211::RegulatoryInformation::from_message(&msg)?;
-                                println!("Regulatory Domain\n{}", info);
-                            }
-                            nl80211::Command::RegulatoryChange => {
-                                let change =
-                                    nl80211::RegulatoryChange::from_message(&msg)?;
-                                println!("Regulatory Change {}", change);
-                            }
-                            nl80211::Command::Connect => {
-                                for ref attr in &msg.attributes {
-                                    let id = nl80211::Attribute::from(
-                                        attr.identifier);
-                                    match id {
-                                        nl80211::Attribute::StatusCode => {
-                                            let status = attr.as_u16()?;
-                                            if status == 0 {
-                                                println!("Connect status: OK");
-                                            }
-                                            else {
-                                                println!("Connect status: {}", status);
-                                            }
-                                        },
-                                        _ => (),
-                                    }
-                                }
-                            }
-                            nl80211::Command::Disconnect => {
-                                println!("Disconnect");
-                            }
-                            _ => {
-                                println!("Event Command: {:?}", command);
-                                for ref attr in &msg.attributes {
-                                    let attr_id = nl80211::Attribute::from(attr.identifier);
-                                    println!("Attribute: {:?} Len: {}", attr_id, attr.len());
-                                    match attr_id {
-                                        nl80211::Attribute::Frame => {
-                                            let frame = Frame::unpack(&attr.as_bytes())?;
-                                            println!("{}", frame);
-                                        },
-                                        _ => (),
-                                    }
-                                }
-                            }
-                        }
+                        self.handle_event_nl80211_message(&msg)?;
                     }
                     else {
                         println!("Other message: {}", m.header);

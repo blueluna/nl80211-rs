@@ -15,6 +15,16 @@ pub enum WirelessDeviceId
     DeviceIdentifier(u64),
 }
 
+impl fmt::Display for WirelessDeviceId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            WirelessDeviceId::None => write!(f, "None"),
+            WirelessDeviceId::InterfaceIndex(i) => write!(f, "{}", i),
+            WirelessDeviceId::DeviceIdentifier(i) => write!(f, "{}", i),
+        }
+    }
+}
+
 pub struct WirelessInterface { 
     pub family: generic::Family,
     pub phy_id: u32,

@@ -45,7 +45,7 @@ impl From<u8> for RegulatoryOrganization {
 }
 
 #[derive(Debug, PartialEq)]
-enum RegulatoryRegion {
+pub enum RegulatoryRegion {
     Country,
     World,
     WorldDevice,
@@ -64,7 +64,7 @@ impl From<u8> for RegulatoryRegion {
 }
 
 #[derive(Debug, PartialEq)]
-enum RegulatoryInitiator {
+pub enum RegulatoryInitiator {
     Core,
     User,
     Driver,
@@ -82,7 +82,7 @@ impl From<u8> for RegulatoryInitiator {
     }
 }
 
-struct RegulatoryRule {
+pub struct RegulatoryRule {
     start: u32,
     end: u32,
     flags: RegulatoryFlags,
