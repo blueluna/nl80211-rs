@@ -26,20 +26,58 @@ bitflags! {
 }
 
 #[derive(Debug, PartialEq)]
-enum RegulatoryRegion {
+enum RegulatoryOrganization {
     Unset,
-    FederalCommunicationsCommission,
-    EuropeanTelecommunicationsStandardsInstitute,
+    FCC,
+    ETSI,
     Japan,
+}
+
+impl From<u8> for RegulatoryOrganization {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => RegulatoryOrganization::FCC,
+            2 => RegulatoryOrganization::ETSI,
+            3 => RegulatoryOrganization::Japan,
+            _ => RegulatoryOrganization::Unset,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum RegulatoryRegion {
+    Country,
+    World,
+    WorldDevice,
+    Intersection,
 }
 
 impl From<u8> for RegulatoryRegion {
     fn from(value: u8) -> Self {
         match value {
-            1 => RegulatoryRegion::FederalCommunicationsCommission,
-            2 => RegulatoryRegion::EuropeanTelecommunicationsStandardsInstitute,
-            3 => RegulatoryRegion::Japan,
-            _ => RegulatoryRegion::Unset,
+            1 => RegulatoryRegion::Country,
+            2 => RegulatoryRegion::WorldDevice,
+            3 => RegulatoryRegion::Intersection,
+            _ => RegulatoryRegion::World,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum RegulatoryInitiator {
+    Core,
+    User,
+    Driver,
+    InformationElement,
+}
+
+impl From<u8> for RegulatoryInitiator {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => RegulatoryInitiator::User,
+            2 => RegulatoryInitiator::Driver,
+            3 => RegulatoryInitiator::InformationElement,
+            _ => RegulatoryInitiator::Core,
         }
     }
 }
@@ -127,7 +165,7 @@ impl RegulatoryRule {
 
 pub struct RegulatoryInformation {
     country: String,
-    region: RegulatoryRegion,
+    region: RegulatoryOrganization,
     rules: Vec<RegulatoryRule>,
 }
 
@@ -166,8 +204,53 @@ impl RegulatoryInformation {
         }
         Ok(RegulatoryInformation{
             country: country,
-            region: RegulatoryRegion::from(region),
+            region: RegulatoryOrganization::from(region),
             rules: rules,
+        })
+    }
+}
+
+pub struct RegulatoryChange {
+    country: Option<String>,
+    region: RegulatoryRegion,
+    initiator: RegulatoryInitiator,
+}
+
+impl fmt::Display for RegulatoryChange {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{0:?} {1:?} \"{2}\"", self.region,   
+            self.initiator, self.country.as_ref().unwrap_or(&String::new()))
+    }
+}
+
+impl RegulatoryChange {
+    pub fn from_message(message: &generic::Message)
+        -> Result<RegulatoryChange>
+    {
+        let mut country = None;
+        let mut region = 0u8;
+        let mut initiator = 0u8;
+        for ref attribute in &message.attributes {
+            let id = Attribute::from(attribute.identifier);
+            match id {
+                Attribute::RegAlpha2 => {
+                    if attribute.len() >= 2 {
+                        country = attribute.as_string().ok();
+                    }
+                }
+                Attribute::RegInitiator => {
+                    initiator = attribute.as_u8()?;
+                }
+                Attribute::RegType => {
+                    region = attribute.as_u8()?;
+                }
+                _ => ()
+            }
+        }
+        Ok(RegulatoryChange{
+            country: country,
+            region: RegulatoryRegion::from(region),
+            initiator: RegulatoryInitiator::from(initiator),
         })
     }
 }

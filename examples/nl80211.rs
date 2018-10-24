@@ -432,10 +432,36 @@ impl Monitor {
                             nl80211::Command::GetRegulatory => {
                                 let info =
                                     nl80211::RegulatoryInformation::from_message(&msg)?;
-                                println!("{}", info);
+                                println!("Regulatory Domain\n{}", info);
+                            }
+                            nl80211::Command::RegulatoryChange => {
+                                let change =
+                                    nl80211::RegulatoryChange::from_message(&msg)?;
+                                println!("Regulatory Change {}", change);
+                            }
+                            nl80211::Command::Connect => {
+                                for ref attr in &msg.attributes {
+                                    let id = nl80211::Attribute::from(
+                                        attr.identifier);
+                                    match id {
+                                        nl80211::Attribute::StatusCode => {
+                                            let status = attr.as_u16()?;
+                                            if status == 0 {
+                                                println!("Connect status: OK");
+                                            }
+                                            else {
+                                                println!("Connect status: {}", status);
+                                            }
+                                        },
+                                        _ => (),
+                                    }
+                                }
+                            }
+                            nl80211::Command::Disconnect => {
+                                println!("Disconnect");
                             }
                             _ => {
-                                println!("Command: {:?}", command);
+                                println!("Event Command: {:?}", command);
                                 for ref attr in &msg.attributes {
                                     let attr_id = nl80211::Attribute::from(attr.identifier);
                                     println!("Attribute: {:?} Len: {}", attr_id, attr.len());

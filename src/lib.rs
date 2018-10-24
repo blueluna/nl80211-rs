@@ -31,4 +31,4 @@ pub use wireless_interface::{WirelessDeviceId, WirelessInterface,
     get_wireless_interfaces};
 pub use wireless_phy::get_wireless_phys;
 pub use frame::Frame;
-pub use regulatory::RegulatoryInformation;
+pub use regulatory::{RegulatoryInformation, RegulatoryChange};
