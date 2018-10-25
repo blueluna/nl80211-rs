@@ -360,14 +360,14 @@ impl Frame {
 
 impl fmt::Display for Frame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Frame::Management(frame) => {
+        match *self {
+            Frame::Management(ref frame) => {
                 write!(f, "{}", frame)
             },
-            Frame::Control(frame) => {
+            Frame::Control(ref frame) => {
                 write!(f, "{}", frame)
             },
-            Frame::Data(frame) => {
+            Frame::Data(ref frame) => {
                 write!(f, "{}", frame)
             },
         }
