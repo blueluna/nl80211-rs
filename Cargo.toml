@@ -1,6 +1,6 @@
 [package]
 name = "nl80211-rs"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Erik Svensson <erik.public@gmail.com>"]
 build = "build.rs"
 description="nl80211 library in Rust"

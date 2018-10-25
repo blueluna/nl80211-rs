@@ -199,25 +199,25 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                 let attr_data = &attr.as_bytes();
                 let ies = InformationElement::parse_all(attr_data)?;
                 for ref ie in ies {
-                    match ie {
-                        InformationElement::Ssid(ie) => {
+                    match *ie {
+                        InformationElement::Ssid(ref ie) => {
                             ssid = Some(ie.ssid.clone());
                         },
-                        InformationElement::HighThroughputOperation(ie) => {
+                        InformationElement::HighThroughputOperation(ref ie) => {
                             if channel_width < ie.width {
                                 channel_width = ie.width;
                             }
                             channel_1 = ie.primary_channel;
                             channel_2 = ie.secondary_channel;
                         },
-                        InformationElement::VeryHighThroughputOperation(ie) => {
+                        InformationElement::VeryHighThroughputOperation(ref ie) => {
                             if channel_width < ie.width {
                                 channel_width = ie.width;
                             }
                             channel_1 = ie.channel;
                             channel_2 = ie.secondary_channel;
                         },
-                        InformationElement::RobustSecurityNetwork(ie) => {
+                        InformationElement::RobustSecurityNetwork(ref ie) => {
                             pmf = ie.pmf_mode();
                             for c in ie.ciphers.iter() {
                                 ciphers.push(c.clone());
