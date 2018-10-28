@@ -125,16 +125,16 @@ impl WirelessInterface {
         }
         if phy_id.is_some() && interface_name.is_some() && interface_index.is_some() && mac.is_some() {
             Ok(WirelessInterface{
-                family: family,
+                family,
                 phy_id: phy_id.unwrap(),
                 interface_name: interface_name.unwrap(),
                 interface_index: interface_index.unwrap(),
-                device_id: device_id,
+                device_id,
                 mac: mac.unwrap(),
-                interface_type: interface_type,
-                tx_power_level: tx_power_level,
-                ssid: ssid,
-                channel_width: channel_width,
+                interface_type,
+                tx_power_level,
+                ssid,
+                channel_width,
                 wireless_device_id: wdev_id,
             })
         }
@@ -394,7 +394,7 @@ impl WirelessInterface {
     }
 }
 
-pub fn get_wireless_interfaces(socket: &mut Socket, family: generic::Family)
+pub fn get_wireless_interfaces(socket: &mut Socket, family: &generic::Family)
     -> Result<Vec<WirelessInterface>, Error>
 {
     {
@@ -409,17 +409,14 @@ pub fn get_wireless_interfaces(socket: &mut Socket, family: generic::Family)
             break;
         }
         for message in messages {
-            match message {
-                Message::Data(m) => {
-                    if m.header.identifier == family.id {
-                        let (_, gmsg) = generic::Message::unpack(&m.data)?;
-                        match WirelessInterface::from_message(gmsg, family.clone()) {
-                            Ok(wi) => devices.push(wi),
-                            Err(_) => (),
-                        }
+            if let Message::Data(m) = message {
+                if m.header.identifier == family.id {
+                    let (_, gmsg) = generic::Message::unpack(&m.data)?;
+                    if let Ok(wi) = WirelessInterface::from_message(gmsg,
+                        family.clone()) {
+                        devices.push(wi);
                     }
-                },
-                _ => (),
+                }
             }
         }
     }

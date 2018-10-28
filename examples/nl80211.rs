@@ -676,7 +676,7 @@ fn main() {
         .expect("Failed to open control socket");
     let family = generic::Family::from_name(&mut control_socket, "nl80211")
         .expect("Failed to get nl80211 family");
-    let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, family)
+    let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, &family)
         .expect("Failed to get nl80211 wireless interfaces");
     let mut device = None;
     if let Some(if_name) = interface {

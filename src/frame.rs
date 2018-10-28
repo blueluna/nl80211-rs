@@ -229,12 +229,12 @@ impl ManagementFrame {
                 Some(u32::unpack_unchecked(&buffer[20..]))
             } else { None };
             return Ok(ManagementFrame {
-                control: control,
-                duration: duration,
+                control,
+                duration,
                 address1: a1,
                 address2: a2,
                 address3: a3,
-                sequence: sequence,
+                sequence,
                 high_throughput_control: htc,
             });
         }
@@ -268,8 +268,8 @@ impl ControlFrame {
         if buffer.len() > 6 {
             let a1 = HardwareAddress::unpack_unchecked(&buffer[..]);
             return Ok(ControlFrame {
-                control: control,
-                duration: duration,
+                control,
+                duration,
                 address1: a1,
             });
         }
@@ -308,8 +308,8 @@ impl DataFrame {
             let qos = u16::unpack_unchecked(&buffer[26..]);
             let ht = u32::unpack_unchecked(&buffer[28..]);
             return Ok(DataFrame {
-                control: control,
-                duration: duration,
+                control,
+                duration,
                 address1: a1,
                 address2: a2,
                 address3: a3,

@@ -7,7 +7,7 @@ use attributes::{Attribute, RegulatoryRuleAttribute};
 
 bitflags! {
     pub struct RegulatoryFlags: u32 {
-        const NO_OFDM       = 1 << 0;
+        const NO_OFDM       = 1;
         const NO_CCK        = 1 << 1;
         const NO_INDOOR     = 1 << 2;
         const NO_OUTDOOR    = 1 << 3;
@@ -95,9 +95,9 @@ pub struct RegulatoryRule {
 impl fmt::Display for RegulatoryRule {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}-{} BW {:3.0} PWR {:3.1} GAIN {:4} {:4} {:?}",
-            self.start as f64 / 1000.0, self.end as f64 / 1000.0,
-            self.bandwidth as f64 / 1000.0,
-            self.effective_power as f64 / 1000.0,
+            f64::from(self.start) / 1000.0, f64::from(self.end) / 1000.0,
+            f64::from(self.bandwidth) / 1000.0,
+            f64::from(self.effective_power) / 1000.0,
             self.antenna_gain,
             self.channel_available_check_time,
             self.flags)
@@ -142,21 +142,20 @@ impl RegulatoryRule {
             }
         }
         Ok(RegulatoryRule {
-            start: start,
-            end: end,
+            start,
+            end,
             flags: RegulatoryFlags::from_bits_truncate(flags),
-            bandwidth: bandwidth,
-            antenna_gain: antenna_gain,
-            effective_power: effective_power,
-            channel_available_check_time: channel_available_check_time,
+            bandwidth,
+            antenna_gain,
+            effective_power,
+            channel_available_check_time,
         })
     }
     fn from_nested_attribute_array(buffer: &[u8]) -> Vec<RegulatoryRule> {
         let mut rules = vec![];
         for attributes in netlink::nested_attribute_array(buffer) {
-            match RegulatoryRule::from_attributes(attributes) {
-                Ok(rule) => rules.push(rule),
-                Err(_) => ()
+            if let Ok(rule) = RegulatoryRule::from_attributes(attributes) {
+                rules.push(rule);
             }
         }
         rules
@@ -171,9 +170,9 @@ pub struct RegulatoryInformation {
 
 impl fmt::Display for RegulatoryInformation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{0} {1:?}\n", self.country, self.region)?;
-        for ref rule in &self.rules {
-            write!(f, "  {}\n", rule)?;
+        writeln!(f, "{0} {1:?}", self.country, self.region)?;
+        for rule in &(self.rules) {
+            writeln!(f, "  {}", rule)?;
         }
         Ok(())
     }
@@ -186,7 +185,7 @@ impl RegulatoryInformation {
         let mut country = String::new();
         let mut region = 0u8;
         let mut rules = vec![];
-        for ref attribute in &message.attributes {
+        for attribute in &(message.attributes) {
             let id = Attribute::from(attribute.identifier);
             match id {
                 Attribute::RegAlpha2 => {
@@ -203,9 +202,9 @@ impl RegulatoryInformation {
             }
         }
         Ok(RegulatoryInformation{
-            country: country,
+            country,
             region: RegulatoryOrganization::from(region),
-            rules: rules,
+            rules,
         })
     }
 }
@@ -230,7 +229,7 @@ impl RegulatoryChange {
         let mut country = None;
         let mut region = 0u8;
         let mut initiator = 0u8;
-        for ref attribute in &message.attributes {
+        for attribute in &(message.attributes) {
             let id = Attribute::from(attribute.identifier);
             match id {
                 Attribute::RegAlpha2 => {
@@ -248,7 +247,7 @@ impl RegulatoryChange {
             }
         }
         Ok(RegulatoryChange{
-            country: country,
+            country,
             region: RegulatoryRegion::from(region),
             initiator: RegulatoryInitiator::from(initiator),
         })
