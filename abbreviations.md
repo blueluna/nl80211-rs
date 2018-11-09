@@ -1,4 +1,4 @@
-# ieee 802.11 and NL80211 Abbreviations
+# IEEE 802.11 and NL80211 Abbreviations
 
  - ACL, Access Control Lists
  - AKM, Authentication Key Management
