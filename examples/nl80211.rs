@@ -106,8 +106,8 @@ impl fmt::Display for AccessPoint {
         };
         let pmf_symbol = match self.pmf {
             ProtectedManagementFramesMode::Disabled => " ",
-            ProtectedManagementFramesMode::Capable => "🔑",
-            ProtectedManagementFramesMode::Required => "🔒",
+            ProtectedManagementFramesMode::Capable => "C",
+            ProtectedManagementFramesMode::Required => "R",
         };
 	let akms = join_to_string(&self.akms, " ");
 	let ciphers = join_to_string(&self.ciphers, " ");
@@ -584,7 +584,7 @@ impl Monitor {
                             }
                             _ => {
                                 println!("Control Command: {:?}", command);
-                                for ref attr in &msg.attributes {
+                                for attr in &msg.attributes {
                                     let attr_id = nl80211::Attribute::from(attr.identifier);
                                     println!("Attribute: {:?} Len: {}", attr_id, attr.len());
                                 }
@@ -688,7 +688,9 @@ fn main() {
         }
     }
     else {
-        device = Some(devices.remove(0));
+        if !devices.is_empty() {
+            device = Some(devices.remove(0));
+        }
     }
     if let Some(dev) = device {
         println!("Using interface {}", dev.interface_name);
