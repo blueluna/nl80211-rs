@@ -75,6 +75,12 @@ impl Ssid {
     }
 }
 
+impl fmt::Display for Ssid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.ssid)
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum CipherSuite {
     UseGroupCipherSuite,
@@ -323,6 +329,13 @@ impl RobustSecurityNetwork {
     }
 }
 
+impl fmt::Display for RobustSecurityNetwork {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Cipher Suite {} Protected Management Frames {}",
+            self.cipher_suite, self.pmf_mode())
+    }
+}
+
 pub struct HighThroughputOperation
 {
     pub width: u32,
@@ -351,6 +364,13 @@ impl HighThroughputOperation {
     }
 }
 
+impl fmt::Display for HighThroughputOperation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Primary Channel {} Secondary Channel {} Bandwidth {}",
+            self.primary_channel, self.secondary_channel, self.width)
+    }
+}
+
 pub struct VeryHighThroughputOperation
 {
     pub width: u32,
@@ -376,6 +396,13 @@ impl VeryHighThroughputOperation {
         }
 	    Err(io::Error::new(io::ErrorKind::InvalidData,
             "Invalid VHT element").into())
+    }
+}
+
+impl fmt::Display for VeryHighThroughputOperation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Primary Channel {} Secondary Channel {} Bandwidth {}",
+            self.channel, self.secondary_channel, self.width)
     }
 }
 
@@ -466,6 +493,29 @@ impl<'a> InformationElement<'a> {
             }
         };
         Ok(ie)
+    }
+
+    pub fn identifier(&self)
+        -> Option<InformationElementId>
+    {
+        let id = match *self {
+            InformationElement::Ssid(_) => {
+                InformationElementId::Ssid
+            },
+            InformationElement::HighThroughputOperation(_) => {
+                InformationElementId::HighThroughputOperation
+            },
+            InformationElement::VeryHighThroughputOperation(_) => {
+                InformationElementId::VeryHighThroughputOperation
+            },
+            InformationElement::RobustSecurityNetwork(_) => {
+                InformationElementId::RobustSecurityNetwork
+            }
+            InformationElement::Other(ref ie) => {
+                InformationElementId::from(ie.identifier)
+            }
+        };
+        Some(id)
     }
 
     pub fn parse_all(data: &'a [u8])

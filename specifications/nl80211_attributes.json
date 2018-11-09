@@ -324,7 +324,7 @@
           "data_type": "u8",
           "data_length": 0
         },
-        "Ie": {
+        "InformationElement": {
           "value": 42,
           "original_name": "NL80211_ATTR_IE",
           "data_type": "bytes",

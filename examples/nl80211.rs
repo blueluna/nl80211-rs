@@ -530,6 +530,36 @@ impl Monitor {
                             let frame = Frame::unpack(&attr.as_bytes())?;
                             println!("  Attribute: Frame: {}", frame);
                         }
+                        nl80211::Attribute::InformationElement => {
+                            println!("  Attribute: Information Element");
+                            let attr_data = &attr.as_bytes();
+                            let ies = InformationElement::parse_all(attr_data)?;
+                            for ref ie in ies {
+                                if let Some(id) = ie.identifier() {
+                                    print!("    Information Element {:?}", id);
+                                }
+                                else {
+                                    println!("    Information Element Unknown");
+                                    continue;
+                                }
+                                match *ie {
+                                    InformationElement::Ssid(ref ie) => {
+                                        print!(" {}", ie);
+                                    },
+                                    InformationElement::RobustSecurityNetwork(ref ie) => {
+                                        print!(" {}", ie);
+                                    },
+                                    InformationElement::HighThroughputOperation(ref ie) => {
+                                        print!(" {}", ie);
+                                    },
+                                    InformationElement::VeryHighThroughputOperation(ref ie) => {
+                                        print!(" {}", ie);
+                                    },
+                                    _ => (),
+                                }
+                                println!("");
+                            }
+                        }
                         nl80211::Attribute::WiphyTxPowerLevel => {
                             println!("  Attribute: Tx Power: {:6.3} dBm",
                                 attr.as_u32().unwrap_or(0) as f64 / 1000.0);
