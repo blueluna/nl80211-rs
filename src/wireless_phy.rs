@@ -175,6 +175,7 @@ impl WirelessPhy {
                 Attribute::Generation => (),
                 Attribute::RoamSupport | Attribute::TdlsSupport |
                 Attribute::OffchannelTxOk => {
+                    println!("[{:?}] {:?}", phy_id, identifier);
                     assert!(attr.len() == 0);
                 }
                 Attribute::MaxNumScanSsids |
@@ -202,7 +203,7 @@ impl WirelessPhy {
                 Attribute::Bands | Attribute::MaxNumSchedScanPlans |
                 Attribute::MaxScanPlanInterval |
                 Attribute::MaxScanPlanIterations |
-                Attribute:: WiphyFragThreshold |
+                Attribute::WiphyFragThreshold |
                 Attribute::WiphyRtsThreshold | 
                 Attribute::WiphyAntennaAvailTx |
                 Attribute::WiphyAntennaAvailRx |
@@ -222,7 +223,8 @@ impl WirelessPhy {
                         flags |= b as u32;
                         flags <<= 8;
                     }
-                    let flags = ExtendedFeaturesFlags::from_bits_truncate(flags);
+                    let flags =
+                        ExtendedFeaturesFlags::from_bits_truncate(flags);
                     println!("[{:?}] {:?} {:?}", phy_id, identifier, flags);
                 }
                 Attribute::SoftwareIftypes => {
@@ -237,7 +239,8 @@ impl WirelessPhy {
                     let mut flags = InterfaceTypeFlags::empty();
                     for attr in attrs {
                         if let Some(it) =
-                            InterfaceType::convert_from(attr.identifier as u32) {
+                            InterfaceType::convert_from(attr.identifier as u32)
+                        {
                             let itf = InterfaceTypeFlags::from(it);
                             flags |= itf;
                         }
@@ -250,8 +253,8 @@ impl WirelessPhy {
                 }
                 Attribute::CipherSuites => {
                     let values = Vec::<u32>::unpack(&attr.as_bytes())?;
-                    let ciphers: Vec<CipherSuite> = values.into_iter().map(u32::to_be).map(CipherSuite::from)
-                        .collect();
+                    let ciphers: Vec<CipherSuite> = values.into_iter()
+                        .map(u32::to_be).map(CipherSuite::from).collect();
                     print!("[{:?}] {:?}", phy_id, identifier);
                     for cipher in ciphers {
                         print!(" {}", cipher);
@@ -348,7 +351,8 @@ pub fn get_wireless_phys(socket: &mut netlink::Socket, family_id: u16)
                     if let Some(id) = phy_id {
                         if let Some(old_id) = old_phy_id {
                             if old_id != id {
-                                let phy = WirelessPhy::from_attributes(&attributes)?;
+                                let phy =
+                                    WirelessPhy::from_attributes(&attributes)?;
                                 phys.push(phy);
                                 attributes.clear();
                             }
