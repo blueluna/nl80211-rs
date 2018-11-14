@@ -115,7 +115,7 @@ impl WirelessPhy {
                 "Wireless Phy Not Found").into())
         }
     }
-    pub fn from_attributes(attributes: &Vec<netlink_rust::Attribute>)
+    pub fn from_attributes(attributes: &Vec<netlink::Attribute>)
         -> Result<WirelessPhy, Error>
     {
         let mut phy_id = None;
