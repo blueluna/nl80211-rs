@@ -145,8 +145,8 @@ impl fmt::Display for CipherSuite {
             BroadcastIntegrityProtocol => write!(f, "BIP"),
             GroupAddressedTrafficNotAllowed =>
                 write!(f, "GroupAddressedTrafficNotAllowed"),
-            Reserved(v) => write!(f, "Reserved {:x}", v),
-            Vendor(v) => write!(f, "Vendor {:x}", v),
+            Reserved(v) => write!(f, "Reserved {:02x}", v),
+            Vendor(v) => write!(f, "Vendor {:08x}", v),
         }
     }
 }
