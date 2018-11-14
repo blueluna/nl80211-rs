@@ -1,6 +1,6 @@
 use std::fmt;
 use std::io;
-use netlink_rust::{Socket, Attribute, Message, MessageMode, HardwareAddress,
+use netlink_rust::{Socket, Attribute, MessageMode, HardwareAddress,
     Error};
 use netlink_rust::generic;
 use attributes;
@@ -179,19 +179,6 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
-            }
         }
         Ok(())
     }
@@ -205,19 +192,6 @@ impl WirelessInterface {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
                 break;
-            }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
             }
         }
         Ok(())
@@ -234,19 +208,6 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
-            }
         }
         Ok(())
     }
@@ -259,19 +220,6 @@ impl WirelessInterface {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
                 break;
-            }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
             }
         }
         Ok(())
@@ -287,19 +235,6 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
-            }
         }
         Ok(())
     }
@@ -313,19 +248,6 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
-            }
         }
         Ok(())
     }
@@ -335,7 +257,7 @@ impl WirelessInterface {
     {
         let mut tx_msg = self.prepare_device_message(Command::Connect,
             MessageMode::Acknowledge)?;
-        tx_msg.append_attribute(Attribute::new_string(
+        tx_msg.append_attribute(Attribute::new_string_with_nul(
             attributes::Attribute::Ssid, ssid));
         socket.send_message(&tx_msg)?;
         loop {
@@ -343,51 +265,58 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        println!("Data, {}", m.header);
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
-                }
-            }
         }
         Ok(())
     }
 
     pub fn get_regulatory(&self, socket: &mut Socket) -> Result<(), Error>
     {
-        let msg = self.prepare_message(Command::GetRegulatory,
-            MessageMode::Dump)?;
+        let msg = generic::Message::new(self.family.id, Command::GetRegulatory,
+            MessageMode::Dump);
+        /* let msg = self.prepare_message(Command::GetRegulatory,
+            MessageMode::Dump)?; */
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
                 break;
             }
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        let (_, msg) = generic::Message::unpack(&m.data)?;
-                        if Command::from(msg.command)
-                            == Command::GetRegulatory {
-                            let info = RegulatoryInformation::from_message(
-                                &msg)?;
-                            println!("{}", info);
-                        }
-                    },
-                    Message::Acknowledge => {
-                        println!("Acknowledge");
-                    },
-                    Message::Done => {
-                        println!("Done");
-                    },
+            for m in messages {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                let cmd = Command::from(msg.command);
+                if cmd == Command::GetRegulatory {
+                    let info = RegulatoryInformation::from_message(
+                        &msg)?;
+                    println!("{}", info);
                 }
+                else {
+                    println!("{:?}", cmd);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn set_regulatory(&self, socket: &mut Socket, alpha2: &str)
+        -> Result<(), Error> {
+        {
+            assert!(alpha2.len() == 2);
+            let mut msg = self.prepare_message(Command::RequestSetRegulatory,
+                MessageMode::Acknowledge)?;
+            let attr = Attribute::new_string_with_nul(
+                attributes::Attribute::RegAlpha2, alpha2);
+            msg.append_attribute(attr);
+            socket.send_message(&msg)?;
+        }
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for m in messages {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                let cmd = Command::from(msg.command);
+                println!("{:?}", cmd);
             }
         }
         Ok(())
@@ -408,14 +337,12 @@ pub fn get_wireless_interfaces(socket: &mut Socket, family: &generic::Family)
         if messages.is_empty() {
             break;
         }
-        for message in messages {
-            if let Message::Data(m) = message {
-                if m.header.identifier == family.id {
-                    let (_, gmsg) = generic::Message::unpack(&m.data)?;
-                    if let Ok(wi) = WirelessInterface::from_message(gmsg,
-                        family.clone()) {
-                        devices.push(wi);
-                    }
+        for m in messages {
+            if m.header.identifier == family.id {
+                let (_, gmsg) = generic::Message::unpack(&m.data)?;
+                if let Ok(wi) = WirelessInterface::from_message(gmsg,
+                    family.clone()) {
+                    devices.push(wi);
                 }
             }
         }

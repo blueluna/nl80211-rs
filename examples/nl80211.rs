@@ -1,8 +1,8 @@
 extern crate libc;
 extern crate netlink_rust;
 extern crate mio;
-extern crate clap;
 extern crate nl80211_rs;
+extern crate structopt;
 
 use std::io;
 use std::io::{Write};
@@ -23,7 +23,7 @@ use nl80211_rs as nl80211;
 use nl80211_rs::*;
 use nl80211_rs::InformationElement;
 
-use clap::{Arg, App, SubCommand};
+use structopt::StructOpt;
 
 #[allow(dead_code)]
 fn show_slice(slice: &[u8])
@@ -303,19 +303,13 @@ fn scan_request_result(socket: &mut Socket, wireless_device: &WirelessInterface)
             break;
         }
         else {
-            for message in messages {
-                match message {
-                    Message::Data(m) => {
-                        if m.header.identifier ==  wireless_device.family.id {
-                            let (_, msg) = generic::Message::unpack(&m.data)?;
-                            aps.push(parse_scan_result(&msg)?);
-                        }
-                        else {
-                            println!("Unknown message {}", m.header);
-                        }
-                    },
-                    Message::Acknowledge => (),
-                    Message::Done => (),
+            for m in messages {
+                if m.header.identifier ==  wireless_device.family.id {
+                    let (_, msg) = generic::Message::unpack(&m.data)?;
+                    aps.push(parse_scan_result(&msg)?);
+                }
+                else {
+                    println!("Unknown message {}", m.header);
                 }
             }
         }
@@ -329,7 +323,7 @@ struct Monitor {
     device: WirelessInterface,
     event_socket: Socket,
     control_socket: Socket,
-    control_command: nl80211::Command,
+    receive_sequence: u32,
     scan_results: Vec<AccessPoint>,
 }
 
@@ -349,7 +343,7 @@ impl Monitor {
             device: device,
             event_socket: event_socket,
             control_socket: control_socket,
-            control_command: nl80211::Command::Unspecified,
+            receive_sequence: u32::max_value(),
             scan_results: vec![]
             })
     }
@@ -577,19 +571,13 @@ impl Monitor {
 
     fn handle_event_messages(&mut self, messages: Vec<Message>) -> Result<(), Error>
     {
-        for message in messages {
-            match message {
-                Message::Data(m) => {
-                    if m.header.identifier ==  self.device.family.id {
-                        let (_, msg) = generic::Message::unpack(&m.data)?;
-                        self.handle_event_nl80211_message(&msg)?;
-                    }
-                    else {
-                        println!("Other message: {}", m.header);
-                    }
-                },
-                Message::Acknowledge => (),
-                Message::Done => (),
+        for m in messages {
+            if m.header.identifier ==  self.device.family.id {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                self.handle_event_nl80211_message(&msg)?;
+            }
+            else {
+                println!("Other message: {}", m.header);
             }
         }
         Ok(())
@@ -597,105 +585,86 @@ impl Monitor {
 
     fn handle_control_messages(&mut self, messages: Vec<Message>) -> Result<(), Error>
     {
-        for message in messages {
-            match message {
-                Message::Data(m) => {
-                    if m.header.identifier ==  self.device.family.id {
-                        let (_, msg) = generic::Message::unpack(&m.data)?;
-                        let command = nl80211::Command::from(msg.command);
-                        match command {
-                            nl80211::Command::TriggerScan => {},
-                            nl80211::Command::NewScanResults => {
-                                if self.control_command != command {
-                                    self.scan_results.clear();
-                                }
-                                self.scan_results.push(parse_scan_result(&msg)?);
-                                self.scan_triggered = false;
-                            }
-                            _ => {
-                                println!("Control Command: {:?}", command);
-                                for attr in &msg.attributes {
-                                    let attr_id = nl80211::Attribute::from(attr.identifier);
-                                    println!("Attribute: {:?} Len: {}", attr_id, attr.len());
-                                }
-                            }
+        let mut scan_result = false;
+        for m in messages {
+            if m.header.identifier ==  self.device.family.id {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                let command = nl80211::Command::from(msg.command);
+                match command {
+                    nl80211::Command::TriggerScan => {},
+                    nl80211::Command::NewScanResults => {
+                        scan_result = true;
+                        if self.receive_sequence != m.header.sequence {
+                            self.scan_results.clear();
                         }
-                        self.control_command = command;
+                        self.scan_results.push(parse_scan_result(&msg)?);
+                        self.scan_triggered = false;
                     }
-                    else {
-                        println!("Other message: {}", m.header);
+                    _ => {
+                        println!("Control Command: {:?}", command);
+                        for attr in &msg.attributes {
+                            let attr_id = nl80211::Attribute::from(attr.identifier);
+                            println!("Attribute: {:?} Len: {}", attr_id, attr.len());
+                        }
                     }
-                },
-                Message::Acknowledge => {
-                    println!("ACK {:?}", self.control_command);
-                    self.control_command = nl80211::Command::Unspecified;
-                },
-                Message::Done => {
-                    if self.control_command == nl80211::Command::NewScanResults {
-      		            print_scan_results(&mut self.scan_results)?;
-                    }
-                    else {
-                        println!("DONE {:?}", self.control_command);
-                    }
-                    self.control_command = nl80211::Command::Unspecified;
-                },
+                }
             }
+            else {
+                println!("Other message: {}", m.header);
+            }
+            self.receive_sequence = m.header.sequence;
+        }
+        if scan_result {
+            print_scan_results(&mut self.scan_results)?;
         }
         Ok(())
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(StructOpt)]
+#[structopt(name = "nl80211", about = "nl80211 example")]
+struct Arguments {
+    #[structopt(name = "interface", short="i", long = "interface")]
+    interface: Option<String>,
+    #[structopt(subcommand)]
+    user_command: Option<UserCommand>
+}
+
+#[derive(StructOpt)]
 enum UserCommand {
-    Scan,
-    ScheduleScan,
-    ScanResults,
-    Survey,
-    Disconnect,
+    #[structopt(name = "monitor")]
     Monitor,
+    #[structopt(name = "phy-information")]
+    PhyInformation,
+    #[structopt(name = "scan")]
+    Scan,
+    #[structopt(name = "scan-results")]
+    ScanResults,
+    #[structopt(name = "disconnect")]
+    Disconnect,
+    #[structopt(name = "get-regulatory")]
     GetRegulatory,
+    #[structopt(name = "set-regulatory")]
+    SetRegulatory { alpha: String },
 }
 
 impl UserCommand {
     fn requires_root(&self) -> bool {
+        use UserCommand::*;
         match *self {
-            UserCommand::Scan => true,
-            UserCommand::ScheduleScan => true,
-            UserCommand::ScanResults => false,
-            UserCommand::Survey => false,
-            UserCommand::Disconnect => true,
-            UserCommand::Monitor => false,
-            UserCommand::GetRegulatory => false,
+            Scan => true,
+            Disconnect => true,
+            SetRegulatory{..} => true,
+            _ => false,
         }
     }
 }
 
 fn main() {
-    let matches = App::new("nl80211 example")
-        .version("0.1")
-        .author("Erik Svensson <erik.public@gmail.com>")
-        .arg(Arg::with_name("interface").long("interface").short("i").takes_value(true))
-        .subcommand(SubCommand::with_name("scan"))
-        .subcommand(SubCommand::with_name("schedule-scan"))
-        .subcommand(SubCommand::with_name("scan-results"))
-        .subcommand(SubCommand::with_name("disconnect"))
-        .subcommand(SubCommand::with_name("survey"))
-        .subcommand(SubCommand::with_name("get-regulatory"))
-        .get_matches();
-
+    let opt = Arguments::from_args();
     let uid = unsafe { libc::getuid() };
 
-    let interface = matches.value_of("interface");
-
-    let user_command = match matches.subcommand() {
-        ("disconnect", _) => { UserCommand::Disconnect },
-        ("scan", _) => { UserCommand::Scan },
-        ("scan-results", _) => { UserCommand::ScanResults },
-        ("schedule-scan", _) => { UserCommand::ScheduleScan },
-        ("survey", _) => { UserCommand::Survey },
-        ("get-regulatory", _) => { UserCommand::GetRegulatory },
-        _ => { UserCommand::Monitor },
-    };
+    let user_command = opt.user_command.unwrap_or(UserCommand::Monitor);
 
     if uid != 0 && user_command.requires_root() {
         println!("Need to be root");
@@ -709,7 +678,7 @@ fn main() {
     let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, &family)
         .expect("Failed to get nl80211 wireless interfaces");
     let mut device = None;
-    if let Some(if_name) = interface {
+    if let Some(if_name) = opt.interface {
         for dev in devices.into_iter() {
             if dev.interface_name == if_name {
                 device = Some(dev);
@@ -725,34 +694,33 @@ fn main() {
     if let Some(dev) = device {
         println!("Using interface {}", dev.interface_name);
         match user_command {
-            UserCommand::Disconnect => {
-                println!("Disconnect");
-                dev.disconnect(&mut control_socket).unwrap();
+            UserCommand::Monitor => {
+                let mut monitor = Monitor::new(uid == 0, dev).unwrap();
+                monitor.run().unwrap();
+            }
+            UserCommand::PhyInformation => {
+                let phys = nl80211::get_wireless_phys(&mut control_socket,
+                    family.id).expect("Failed to get nl80211 wireless phys");
+                for phy in phys {
+                    println!("{}", phy);
+                }
             }
             UserCommand::Scan => {
                 dev.trigger_scan(&mut control_socket).unwrap();
             }
-            UserCommand::ScheduleScan => {
-                println!("~~~ Stop Scheduled Scan");
-                match dev.stop_interval_scan(&mut control_socket) {
-                    Ok(_) => (),
-                    Err(err) => println!("{}", err),
-                }
-                println!("~~~ Start Scheduled Scan");
-                dev.start_interval_scan(&mut control_socket, 1000).unwrap();
-            }
             UserCommand::ScanResults => {
                 scan_request_result(&mut control_socket, &dev).unwrap();
             }
-            UserCommand::Survey => {
-                dev.get_survey(&mut control_socket).unwrap();
+            UserCommand::Disconnect => {
+                println!("Disconnect");
+                dev.disconnect(&mut control_socket).unwrap();
             }
             UserCommand::GetRegulatory => {
                 dev.get_regulatory(&mut control_socket).unwrap();
             }
-            UserCommand::Monitor => {
-                let mut monitor = Monitor::new(uid == 0, dev).unwrap();
-                monitor.run().unwrap();
+            UserCommand::SetRegulatory{alpha} => {
+                dev.set_regulatory(&mut control_socket, &alpha)
+                    .expect("Failed to set regulatory domain");
             }
         }
     }

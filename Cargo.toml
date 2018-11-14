@@ -22,9 +22,9 @@ encoding = "0.2"
 netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
-mio = "0.6"
-clap = "2"
 libc = "0.2"
+mio = "0.6"
+structopt = { version = "0.2", default-features = false }
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
