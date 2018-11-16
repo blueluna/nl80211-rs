@@ -175,27 +175,25 @@ impl WirelessPhy {
                 Attribute::Generation => (),
                 Attribute::RoamSupport | Attribute::TdlsSupport |
                 Attribute::OffchannelTxOk => {
-                    println!("[{:?}] {:?}", phy_id, identifier);
-                    assert!(attr.len() == 0);
+                    if attr.len() != 0 {
+                        println!("[{:?}] {:?} {} Invalid type", phy_id,
+                            identifier, attr.len());
+                    }
                 }
                 Attribute::MaxNumScanSsids |
                 Attribute::MaxNumSchedScanSsids |
                 Attribute::MaxMatchSets | Attribute::WiphyRetryShort |
                 Attribute::WiphyRetryLong | Attribute::MaxNumPmkids |
                 Attribute::WiphyCoverageClass => {
-                    if let Ok(v) = attr.as_u8() {
-                        println!("[{:?}] {:?} {}", phy_id, identifier, v);
-                    }
-                    else {
+                    if let Err(_) = attr.as_u8() {
                         println!("[{:?}] {:?} {} Invalid type", phy_id,
                             identifier, attr.len());
                     }
                 }
-                Attribute::MaxScanIeLen | Attribute::MaxSchedScanIeLen => {
-                    if let Ok(v) = attr.as_u16() {
-                        println!("[{:?}] {:?} {}", phy_id, identifier, v);
-                    }
-                    else {
+                Attribute::MaxScanIeLen | Attribute::MaxSchedScanIeLen |
+                Attribute::MacAclMax |
+                Attribute::MaxRemainOnChannelDuration => {
+                    if let Err(_) = attr.as_u16() {
                         println!("[{:?}] {:?} {} Invalid type", phy_id,
                             identifier, attr.len());
                     }
@@ -208,10 +206,7 @@ impl WirelessPhy {
                 Attribute::WiphyAntennaAvailTx |
                 Attribute::WiphyAntennaAvailRx |
                 Attribute::DeviceApSme => {
-                    if let Ok(v) = attr.as_u32() {
-                        println!("[{:?}] {:?} {}", phy_id, identifier, v);
-                    }
-                    else {
+                    if let Err(_) = attr.as_u32() {
                         println!("[{:?}] {:?} {} Invalid type", phy_id,
                             identifier, attr.len());
                     }
@@ -223,14 +218,12 @@ impl WirelessPhy {
                         flags |= b as u32;
                         flags <<= 8;
                     }
-                    let flags =
+                    let _flags =
                         ExtendedFeaturesFlags::from_bits_truncate(flags);
-                    println!("[{:?}] {:?} {:?}", phy_id, identifier, flags);
                 }
                 Attribute::SoftwareIftypes => {
                     if let Ok(v) = attr.as_u32() {
-                        let it = InterfaceTypeFlags::from_bits_truncate(v);    
-                        println!("[{:?}] {:?} {:?}", phy_id, identifier, it);
+                        let _it = InterfaceTypeFlags::from_bits_truncate(v);
                     }
                 }
                 Attribute::SupportedIftypes => {
@@ -245,21 +238,14 @@ impl WirelessPhy {
                             flags |= itf;
                         }
                     }
-                    println!("[{:?}] {:?} {:?}", phy_id, identifier, flags);
                 }
                 Attribute::FeatureFlags => {
-                    let ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
-                    println!("[{:?}] {:?} {:?}", phy_id, identifier, ff);
+                    let _ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
                 }
                 Attribute::CipherSuites => {
                     let values = Vec::<u32>::unpack(&attr.as_bytes())?;
-                    let ciphers: Vec<CipherSuite> = values.into_iter()
+                    let _ciphers: Vec<CipherSuite> = values.into_iter()
                         .map(u32::to_be).map(CipherSuite::from).collect();
-                    print!("[{:?}] {:?}", phy_id, identifier);
-                    for cipher in ciphers {
-                        print!(" {}", cipher);
-                    }
-                    println!("");
                 }
                 Attribute::Wiphy => {
                     phy_id = Some(attr.as_u32()?);
@@ -279,6 +265,14 @@ impl WirelessPhy {
                         }
                     }
                 }
+                Attribute::BssSelect => { /* TODO: Parse BssSelect */ }
+                Attribute::WiphyBands => { /* TODO: Parse WiphyBands */ }
+                Attribute::WowlanTriggersSupported => { /* TODO: Parse WowlanTriggersSupported */ }
+                Attribute::TxFrameTypes => { /* TODO: Parse TxFrameTypes */ }
+                Attribute::RxFrameTypes => { /* TODO: Parse RxFrameTypes */ }
+                Attribute::InterfaceCombinations => { /* TODO: Parse InterfaceCombinations */ }
+                Attribute::VendorData => { /* TODO: Parse VendorData */ }
+                Attribute::VendorEvents => { /* TODO: Parse VendorEvents */ }
                 _ => {
                     println!("[{:?}] {:?} LEN: {}",
                         phy_id, identifier, attr.len());

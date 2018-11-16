@@ -4,6 +4,12 @@ extern crate mio;
 extern crate nl80211_rs;
 extern crate structopt;
 
+/*
+use std::alloc::System;
+#[global_allocator]
+static GLOBAL: System = System;
+*/
+
 use std::io;
 use std::io::{Write};
 use std::fmt;
@@ -622,9 +628,9 @@ impl Monitor {
 }
 
 #[derive(StructOpt)]
-#[structopt(name = "nl80211", about = "nl80211 example")]
+#[structopt(name="nl80211", about="nl80211 example")]
 struct Arguments {
-    #[structopt(name = "interface", short="i", long = "interface")]
+    #[structopt(name="interface", short="i", long="interface")]
     interface: Option<String>,
     #[structopt(subcommand)]
     user_command: Option<UserCommand>
@@ -632,19 +638,21 @@ struct Arguments {
 
 #[derive(StructOpt)]
 enum UserCommand {
-    #[structopt(name = "monitor")]
+    #[structopt(name="monitor")]
     Monitor,
-    #[structopt(name = "phy-information")]
+    #[structopt(name="phy-information")]
     PhyInformation,
-    #[structopt(name = "scan")]
+    #[structopt(name="device-information")]
+    DeviceInformation,
+    #[structopt(name="scan")]
     Scan,
-    #[structopt(name = "scan-results")]
+    #[structopt(name="scan-results")]
     ScanResults,
-    #[structopt(name = "disconnect")]
+    #[structopt(name="disconnect")]
     Disconnect,
-    #[structopt(name = "get-regulatory")]
+    #[structopt(name="get-regulatory")]
     GetRegulatory,
-    #[structopt(name = "set-regulatory")]
+    #[structopt(name="set-regulatory")]
     SetRegulatory { alpha: String },
 }
 
@@ -656,6 +664,13 @@ impl UserCommand {
             Disconnect => true,
             SetRegulatory{..} => true,
             _ => false,
+        }
+    }
+    fn requires_device(&self) -> bool {
+        use UserCommand::*;
+        match *self {
+            PhyInformation | DeviceInformation => false,
+            _ => true,
         }
     }
 }
@@ -675,29 +690,54 @@ fn main() {
         .expect("Failed to open control socket");
     let family = generic::Family::from_name(&mut control_socket, "nl80211")
         .expect("Failed to get nl80211 family");
-    let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, &family)
-        .expect("Failed to get nl80211 wireless interfaces");
-    let mut device = None;
-    if let Some(if_name) = opt.interface {
-        for dev in devices.into_iter() {
-            if dev.interface_name == if_name {
-                device = Some(dev);
-                break;
+    let device = if user_command.requires_device() {
+        let mut devices = nl80211::get_wireless_interfaces(&mut control_socket,
+            &family).expect("Failed to get nl80211 wireless interfaces");
+        if let Some(if_name) = opt.interface {
+            devices.into_iter().find(|d| d.interface_name == if_name)
+        }
+        else {
+            if devices.is_empty() { None } else { Some(devices.remove(0)) }
+        }
+    }
+    else {
+        None
+    };
+    if user_command.requires_device() && device.is_none() {
+        println!("Failed to find the device");
+        return;
+    }
+    if user_command.requires_device() {
+        if let Some(dev) = device {
+            println!("Using interface {}", dev.interface_name);
+            match user_command {
+                UserCommand::Monitor => {
+                    let mut monitor = Monitor::new(uid == 0, dev).unwrap();
+                    monitor.run().unwrap();
+                }
+                UserCommand::Scan => {
+                    dev.trigger_scan(&mut control_socket).unwrap();
+                }
+                UserCommand::ScanResults => {
+                    scan_request_result(&mut control_socket, &dev).unwrap();
+                }
+                UserCommand::Disconnect => {
+                    println!("Disconnect");
+                    dev.disconnect(&mut control_socket).unwrap();
+                }
+                UserCommand::GetRegulatory => {
+                    dev.get_regulatory(&mut control_socket).unwrap();
+                }
+                UserCommand::SetRegulatory{alpha} => {
+                    dev.set_regulatory(&mut control_socket, &alpha)
+                        .expect("Failed to set regulatory domain");
+                }
+                _ => (),
             }
         }
     }
     else {
-        if !devices.is_empty() {
-            device = Some(devices.remove(0));
-        }
-    }
-    if let Some(dev) = device {
-        println!("Using interface {}", dev.interface_name);
         match user_command {
-            UserCommand::Monitor => {
-                let mut monitor = Monitor::new(uid == 0, dev).unwrap();
-                monitor.run().unwrap();
-            }
             UserCommand::PhyInformation => {
                 let phys = nl80211::get_wireless_phys(&mut control_socket,
                     family.id).expect("Failed to get nl80211 wireless phys");
@@ -705,26 +745,16 @@ fn main() {
                     println!("{}", phy);
                 }
             }
-            UserCommand::Scan => {
-                dev.trigger_scan(&mut control_socket).unwrap();
+            UserCommand::DeviceInformation => {
+                let mut devices = nl80211::get_wireless_interfaces(
+                    &mut control_socket, &family)
+                    .expect("Failed to get nl80211 wireless interfaces");
+                for dev in devices.into_iter() {
+                    println!("{}", dev);
+                    break;
+                }
             }
-            UserCommand::ScanResults => {
-                scan_request_result(&mut control_socket, &dev).unwrap();
-            }
-            UserCommand::Disconnect => {
-                println!("Disconnect");
-                dev.disconnect(&mut control_socket).unwrap();
-            }
-            UserCommand::GetRegulatory => {
-                dev.get_regulatory(&mut control_socket).unwrap();
-            }
-            UserCommand::SetRegulatory{alpha} => {
-                dev.set_regulatory(&mut control_socket, &alpha)
-                    .expect("Failed to set regulatory domain");
-            }
+            _ => (),
         }
-    }
-    else {
-        println!("Failed to find the device");
     }
 }

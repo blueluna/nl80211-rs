@@ -41,8 +41,9 @@ pub struct WirelessInterface {
 
 impl fmt::Display for WirelessInterface {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Wireless Device: Phy: {} Interface Name: {} Interface Index: {} MAC Address: {} Interface Type: {:?} Tx Power Level: {}",
-            self.phy_id, self.interface_name, self.interface_index, self.mac, self.interface_type, self.tx_power_level)?;
+        write!(f, "Name: {} Index: {} Address: {} Interface Type: \"{:?}\"",
+            self.interface_name, self.interface_index, self.mac,
+            self.interface_type)?;
         if let Some(id) = self.device_id { write!(f, " Wireless Device Id: {}", id)?; };
         if let Some(ref ssid) = self.ssid { write!(f, " SSID: {}", ssid)?; };
         Ok(())

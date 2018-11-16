@@ -67,10 +67,13 @@ pub struct Ssid
 impl Ssid {
     pub fn parse(data: &[u8]) -> Result<Ssid, Error>
     {
-        let ssid = ISO_8859_1.decode(data, DecoderTrap::Strict)
-            .or_else(|_| {
-                String::from_utf8(data.to_vec())
-            })?;
+        // First try to decode utf8
+        let ssid = String::from_utf8(data.to_vec()).unwrap_or_else(|_|
+            // Then try ISO 8859-1
+            ISO_8859_1.decode(data, DecoderTrap::Strict)
+                .unwrap_or(String::new())
+            );
+        let ssid = ssid.trim_end_matches('\0').to_string();
         Ok(Ssid { ssid })
     }
 }
