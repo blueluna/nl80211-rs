@@ -1642,6 +1642,66 @@
           "original_name": "NL80211_ATTR_PORT_AUTHORIZED",
           "data_type": "bytes",
           "data_length": 0
+        },
+        "ExternalAuthenticationAction": {
+          "value": 260,
+          "original_name": "NL80211_ATTR_EXTERNAL_AUTH_ACTION",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ExternalAuthenticationSupport": {
+          "value": 261,
+          "original_name": "NL80211_ATTR_EXTERNAL_AUTH_SUPPORT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "NumberOfSpacialStreamsEvent": {
+          "value": 262,
+          "original_name": "NL80211_ATTR_NSS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "AcknowledgeSignal": {
+          "value": 263,
+          "original_name": "NL80211_ATTR_ACK_SIGNAL",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ControlPortFrameOverNl80211": {
+          "value": 264,
+          "original_name": "NL80211_ATTR_CONTROL_PORT_OVER_NL80211",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmitQueueStatistics": {
+          "value": 265,
+          "original_name": "NL80211_ATTR_TXQ_STATS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmitQueueLimit": {
+          "value": 266,
+          "original_name": "NL80211_ATTR_TXQ_LIMIT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmitQueueMemoryLimit": {
+          "value": 267,
+          "original_name": "NL80211_ATTR_TXQ_MEMORY_LIMIT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmitQueueSchedulerBytes": {
+          "value": 268,
+          "original_name": "NL80211_ATTR_TXQ_QUANTUM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HighEfficiencyCapability": {
+          "value": 269,
+          "original_name": "NL80211_ATTR_HE_CAPABILITY",
+          "data_type": "bytes",
+          "data_length": 0
         }
       }
     },

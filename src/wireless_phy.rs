@@ -285,6 +285,9 @@ impl WirelessPhy {
                     },
                 }
             }
+            else {
+                println!("Unknown identifier {}", attr.identifier);
+            }
         }
         if phy_id.is_some() {
             Ok(WirelessPhy{
