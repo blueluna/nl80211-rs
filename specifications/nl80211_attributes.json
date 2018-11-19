@@ -573,7 +573,7 @@
           "data_type": "u32",
           "data_length": 0
         },
-        "Addr": {
+        "FourAddr": {
           "value": 83,
           "original_name": "NL80211_ATTR_4ADDR",
           "data_type": "u8",

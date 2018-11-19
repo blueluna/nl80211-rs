@@ -95,6 +95,14 @@ impl WirelessInterface {
                     attributes::Attribute::ChannelWidth => {
                         channel_width = Some(attr.as_u32()?);
                     }
+                    attributes::Attribute::FourAddr => {
+                        let value = attr.as_u8()?;
+                        let _four_addr = match value {
+                            0 => false,
+                            1 => true,
+                            _ => panic!("Unknown 4addr value"),
+                        };
+                    }
                     attributes::Attribute::CenterFreq1 => {} // u32
                     attributes::Attribute::WiphyFreq => {} // u32
                     attributes::Attribute::Generation => (), // u32
@@ -112,7 +120,10 @@ impl WirelessInterface {
                             channel_width = Some(cw);
                             println!("CT: {:?}", channel_width);
                         }
-                    },
+                    }
+                    attributes::Attribute::TransmitQueueStatistics => {
+                        /* TODO: Parse TransmitQueueStatistics */
+                    }
                     identifier => {
                         println!("Skipping {:?} {}", identifier, attr.len());
                     },

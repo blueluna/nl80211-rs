@@ -751,7 +751,6 @@ fn main() {
                     .expect("Failed to get nl80211 wireless interfaces");
                 for dev in devices.into_iter() {
                     println!("{}", dev);
-                    break;
                 }
             }
             _ => (),

@@ -180,7 +180,11 @@ impl WirelessPhy {
                 match identifier {
                     Attribute::Generation => (),
                     Attribute::RoamSupport | Attribute::TdlsSupport |
-                    Attribute::OffchannelTxOk => {
+                    Attribute::OffchannelTxOk | Attribute::SupportIbssRsn |
+                    Attribute::ControlPortEthertype |
+                    Attribute::SupportApUapsd |
+                    Attribute::TdlsExternalSetup |
+                    Attribute::WiphySelfManagedReg => {
                         if attr.len() != 0 {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
@@ -190,7 +194,8 @@ impl WirelessPhy {
                     Attribute::MaxNumSchedScanSsids |
                     Attribute::MaxMatchSets | Attribute::WiphyRetryShort |
                     Attribute::WiphyRetryLong | Attribute::MaxNumPmkids |
-                    Attribute::WiphyCoverageClass => {
+                    Attribute::WiphyCoverageClass |
+                    Attribute::MaxCsaCounters => {
                         if let Err(_) = attr.as_u8() {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
@@ -211,7 +216,11 @@ impl WirelessPhy {
                     Attribute::WiphyRtsThreshold | 
                     Attribute::WiphyAntennaAvailTx |
                     Attribute::WiphyAntennaAvailRx |
-                    Attribute::DeviceApSme => {
+                    Attribute::DeviceApSme |
+                    Attribute::TransmitQueueLimit |
+                    Attribute::TransmitQueueMemoryLimit |
+                    Attribute::TransmitQueueSchedulerBytes |
+                    Attribute::SchedScanMaxReqs => {
                         if let Err(_) = attr.as_u32() {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
@@ -272,6 +281,10 @@ impl WirelessPhy {
                         }
                     }
                     Attribute::BssSelect => { /* TODO: Parse BssSelect */ }
+                    Attribute::ExtCapa => { /* TODO: Parse ExtCapa */ }
+                    Attribute::ExtCapaMask => { /* TODO: Parse ExtCapaMask */ }
+                    Attribute::HtCapabilityMask => { /* TODO: Parse HtCapabilityMask */ }
+                    Attribute::VhtCapabilityMask => { /* TODO: Parse VhtCapabilityMask */ }
                     Attribute::WiphyBands => { /* TODO: Parse WiphyBands */ }
                     Attribute::WowlanTriggersSupported => { /* TODO: Parse WowlanTriggersSupported */ }
                     Attribute::TxFrameTypes => { /* TODO: Parse TxFrameTypes */ }
@@ -279,6 +292,7 @@ impl WirelessPhy {
                     Attribute::InterfaceCombinations => { /* TODO: Parse InterfaceCombinations */ }
                     Attribute::VendorData => { /* TODO: Parse VendorData */ }
                     Attribute::VendorEvents => { /* TODO: Parse VendorEvents */ }
+                    Attribute::TransmitQueueStatistics => { /* TODO: Parse TransmitQueueStatistics */ }
                     _ => {
                         println!("[{:?}] {:?} LEN: {}",
                             phy_id, identifier, attr.len());
