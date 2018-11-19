@@ -115,8 +115,8 @@ impl fmt::Display for AccessPoint {
             ProtectedManagementFramesMode::Capable => "C",
             ProtectedManagementFramesMode::Required => "R",
         };
-	let akms = join_to_string(&self.akms, " ");
-	let ciphers = join_to_string(&self.ciphers, " ");
+        let akms = join_to_string(&self.akms, " ");
+        let ciphers = join_to_string(&self.ciphers, " ");
         write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:4.0} {} {} {}-{}",
             self.bssid, self.ssid, status_symbol, self.frequency,
             self.channel(), self.channel_1, self.channel_2,
@@ -371,26 +371,40 @@ impl Monitor {
                 match event.token() {
                     EVENT => {
                         loop {
-                            let messages = self.event_socket.receive_messages()?;
-                            if !messages.is_empty() {
-                                self.handle_event_messages(messages)?;
-                            }
-                            else {
-                                break;
+                            match self.event_socket.receive_messages() {
+                                Ok(messages) => {
+                                    if !messages.is_empty() {
+                                        self.handle_event_messages(messages)?;
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    println!("Failed to receive messages \"{}\"", e);
+                                    break;
+                                }
                             }
                         }
-                    },
+                    }
                     CONTROL => {
                         loop {
-                            let messages = self.control_socket.receive_messages()?;
-                            if !messages.is_empty() {
-                                self.handle_control_messages(messages)?;
-                            }
-                            else {
-                                break;
+                            match self.control_socket.receive_messages() {
+                                Ok(messages) => {
+                                    if !messages.is_empty() {
+                                        self.handle_control_messages(messages)?;
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    println!("Failed to receive messages \"{}\"", e);
+                                    break;
+                                }
                             }
                         }
-                    },
+                    }
                     _ => println!("Other event"),
                 }
             }
@@ -455,7 +469,12 @@ impl Monitor {
                 let tx_msg = self.device.prepare_message(
                     nl80211::Command::GetScan,
                     MessageMode::Dump)?;
-                self.control_socket.send_message(&tx_msg)?;
+                match self.control_socket.send_message(&tx_msg) {
+                    Ok(_) => (),
+                    Err(ref e) => {
+                            println!("Failed to start scan {}", e);
+                    }
+                }
             }
             nl80211::Command::GetRegulatory => {
                 let info =

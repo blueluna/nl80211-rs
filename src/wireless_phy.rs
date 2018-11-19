@@ -6,11 +6,14 @@ use netlink_rust::generic;
 use attributes::{Attribute, InterfaceType};
 use information_element::CipherSuite;
 use commands::Command;
+use super::join_to_string;
 
 pub struct WirelessPhy {
     identifier: u32,
     name: String,
     commands: Vec<Command>,
+    if_types: InterfaceTypeFlags,
+    software_if_types: InterfaceTypeFlags,
 }
 
 bitflags! {
@@ -119,13 +122,15 @@ bitflags! {
 }
 
 impl WirelessPhy {
-    pub fn from_message(message: generic::Message)
+    pub fn from_attributes(attributes: &Vec<netlink::Attribute>)
         -> Result<WirelessPhy, Error>
     {
         let mut phy_id = None;
         let mut commands = vec![];
         let mut phy_name = String::new();
-        for attr in message.attributes {
+        let mut if_types = InterfaceTypeFlags::empty();
+        let mut software_if_types = InterfaceTypeFlags::empty();
+        for attr in attributes {
             let identifier = Attribute::convert_from(attr.identifier);
             if let Some(identifier) = identifier {
                 match identifier {
@@ -137,47 +142,6 @@ impl WirelessPhy {
                             phy_name = name;
                         }
                     }
-                    Attribute::SupportedCommands => {
-                        let (_, attrs) = netlink::Attribute::unpack_all(
-                            &attr.as_bytes());
-                        for attr in attrs {
-                            if let Some(cmd) =
-                                Command::convert_from(attr.as_u32()? as u8) {
-                                commands.push(cmd);
-                            }
-                        }
-                    }
-                    _ => {
-                        println!("Skipping {:?} {}", identifier, attr.len());
-                    },
-                }
-            }
-            else {
-                println!("Unknown identifier {}", attr.identifier);
-            }
-        }
-        if phy_id.is_some() {
-            Ok(WirelessPhy{
-                identifier: phy_id.unwrap(),
-                name: phy_name,
-                commands,
-            })
-        }
-        else {
-            Err(io::Error::new(io::ErrorKind::NotFound,
-                "Wireless Phy Not Found").into())
-        }
-    }
-    pub fn from_attributes(attributes: &Vec<netlink::Attribute>)
-        -> Result<WirelessPhy, Error>
-    {
-        let mut phy_id = None;
-        let mut commands = vec![];
-        let mut phy_name = String::new();
-        for attr in attributes {
-            let identifier = Attribute::convert_from(attr.identifier);
-            if let Some(identifier) = identifier {
-                match identifier {
                     Attribute::Generation => (),
                     Attribute::RoamSupport | Attribute::TdlsSupport |
                     Attribute::OffchannelTxOk | Attribute::SupportIbssRsn |
@@ -238,7 +202,7 @@ impl WirelessPhy {
                     }
                     Attribute::SoftwareIftypes => {
                         if let Ok(v) = attr.as_u32() {
-                            let _it = InterfaceTypeFlags::from_bits_truncate(v);
+                            software_if_types = InterfaceTypeFlags::from_bits_truncate(v);
                         }
                     }
                     Attribute::SupportedIftypes => {
@@ -253,6 +217,7 @@ impl WirelessPhy {
                                 flags |= itf;
                             }
                         }
+                        if_types = flags;
                     }
                     Attribute::FeatureFlags => {
                         let _ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
@@ -261,14 +226,6 @@ impl WirelessPhy {
                         let values = Vec::<u32>::unpack(&attr.as_bytes())?;
                         let _ciphers: Vec<CipherSuite> = values.into_iter()
                             .map(u32::to_be).map(CipherSuite::from).collect();
-                    }
-                    Attribute::Wiphy => {
-                        phy_id = Some(attr.as_u32()?);
-                    }
-                    Attribute::WiphyName => {
-                        if let Ok(name) = attr.as_string() {
-                            phy_name = name;
-                        }
                     }
                     Attribute::SupportedCommands => {
                         let (_, attrs) = netlink::Attribute::unpack_all(
@@ -280,19 +237,32 @@ impl WirelessPhy {
                             }
                         }
                     }
-                    Attribute::BssSelect => { /* TODO: Parse BssSelect */ }
-                    Attribute::ExtCapa => { /* TODO: Parse ExtCapa */ }
-                    Attribute::ExtCapaMask => { /* TODO: Parse ExtCapaMask */ }
-                    Attribute::HtCapabilityMask => { /* TODO: Parse HtCapabilityMask */ }
-                    Attribute::VhtCapabilityMask => { /* TODO: Parse VhtCapabilityMask */ }
-                    Attribute::WiphyBands => { /* TODO: Parse WiphyBands */ }
-                    Attribute::WowlanTriggersSupported => { /* TODO: Parse WowlanTriggersSupported */ }
-                    Attribute::TxFrameTypes => { /* TODO: Parse TxFrameTypes */ }
-                    Attribute::RxFrameTypes => { /* TODO: Parse RxFrameTypes */ }
-                    Attribute::InterfaceCombinations => { /* TODO: Parse InterfaceCombinations */ }
-                    Attribute::VendorData => { /* TODO: Parse VendorData */ }
-                    Attribute::VendorEvents => { /* TODO: Parse VendorEvents */ }
-                    Attribute::TransmitQueueStatistics => { /* TODO: Parse TransmitQueueStatistics */ }
+                    Attribute::BssSelect => {
+                        /* TODO: Parse BssSelect */ }
+                    Attribute::ExtCapa => {
+                        /* TODO: Parse ExtCapa */ }
+                    Attribute::ExtCapaMask => {
+                        /* TODO: Parse ExtCapaMask */ }
+                    Attribute::HtCapabilityMask => {
+                        /* TODO: Parse HtCapabilityMask */ }
+                    Attribute::VhtCapabilityMask => {
+                        /* TODO: Parse VhtCapabilityMask */ }
+                    Attribute::WiphyBands => {
+                        /* TODO: Parse WiphyBands */ }
+                    Attribute::WowlanTriggersSupported => {
+                        /* TODO: Parse WowlanTriggersSupported */ }
+                    Attribute::TxFrameTypes => {
+                        /* TODO: Parse TxFrameTypes */ }
+                    Attribute::RxFrameTypes => {
+                        /* TODO: Parse RxFrameTypes */ }
+                    Attribute::InterfaceCombinations => {
+                        /* TODO: Parse InterfaceCombinations */ }
+                    Attribute::VendorData => {
+                        /* TODO: Parse VendorData */ }
+                    Attribute::VendorEvents => {
+                        /* TODO: Parse VendorEvents */ }
+                    Attribute::TransmitQueueStatistics => {
+                        /* TODO: Parse TransmitQueueStatistics */ }
                     _ => {
                         println!("[{:?}] {:?} LEN: {}",
                             phy_id, identifier, attr.len());
@@ -308,6 +278,8 @@ impl WirelessPhy {
                 identifier: phy_id.unwrap(),
                 name: phy_name,
                 commands,
+                if_types,
+                software_if_types,
             })
         }
         else {
@@ -325,9 +297,12 @@ impl PartialEq for WirelessPhy {
 
 impl fmt::Display for WirelessPhy {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let commands = join_to_string(self.commands.iter(), " | ");
         write!(f,
-            "Wireless Phy\n  Identifier: {}\n  Name: {}\n  Commands: {:?}",
-            self.identifier, self.name, self.commands)
+            "Wireless Phy\n  Identifier: {}\n  Name: {}\n  Commands: {}\n\
+              Interfaces: {:?}\n  Software Interfaces: {:?}",
+            self.identifier, self.name, commands,
+            self.if_types, self.software_if_types)
 
     }
 }

@@ -33,3 +33,11 @@ pub use wireless_phy::get_wireless_phys;
 pub use frame::Frame;
 pub use regulatory::{RegulatoryChange, RegulatoryInformation,
     RegulatoryInitiator, RegulatoryRegion}; 
+
+fn join_to_string<T>(values: T, separator: &str) -> String
+    where T: Iterator,
+          T::Item: ToString,
+{
+    values.map(|v| v.to_string()).collect::<Vec<_>>()
+        .join(separator)
+}

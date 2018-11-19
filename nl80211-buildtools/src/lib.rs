@@ -108,6 +108,15 @@ fn generate_enum<E: Enumeration, W: Write>(name: &str, value_type: ValueType, it
     writeln!(writer, "      _ => None,")?;
     writeln!(writer, "    }}\n  }}\n}}")?;
 
+    writeln!(writer, "impl fmt::Display for {name} {{
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {{
+    match *self {{", name=name)?;
+    for (value_name, _) in items.iter() {
+        writeln!(writer, "      {enum_name}::{name} => write!(f, \"{name}\"),",
+            enum_name=name, name=value_name)?;
+    }
+    writeln!(writer, "    }}\n  }}\n}}")?;
+
     Ok(())
 }
 
@@ -190,6 +199,7 @@ impl Specification {
     pub fn generate(&self, filepath: &str) -> io::Result<()> {
         let out_file = std::fs::File::create(filepath)?;
         writeln!(&out_file, "use std::convert::{{From, Into}};")?;
+        writeln!(&out_file, "use std::fmt;")?;
         writeln!(&out_file, "use netlink_rust::ConvertFrom;")?;
         writeln!(&out_file, "")?;
 
