@@ -1,7 +1,6 @@
 use std::fmt;
 use std::io;
-use netlink_rust::{Socket, Attribute, MessageMode, HardwareAddress,
-    Error};
+use netlink_rust::{Attribute, Error, HardwareAddress, MessageMode, Socket, ConvertFrom};
 use netlink_rust::generic;
 use attributes;
 use commands::Command;
@@ -65,57 +64,62 @@ impl WirelessInterface {
         let mut channel_width = None;
         let mut wdev_id = WirelessDeviceId::None;
         for attr in message.attributes {
-            let identifier = attributes::Attribute::from(attr.identifier);
-            match identifier {
-                attributes::Attribute::Wiphy => {
-                    phy_id = Some(attr.as_u32()?);
-                }
-                attributes::Attribute::Ifindex => {
-                    interface_index = Some(attr.as_u32()?);
-                }
-                attributes::Attribute::Wdev => {
-                    device_id = Some(attr.as_u64()?);
-                }
-                attributes::Attribute::Ifname => {
-                    interface_name = Some(attr.as_string()?);
-                }
-                attributes::Attribute::Mac => {
-                    mac = Some(attr.as_hardware_address()?);
-                }
-                attributes::Attribute::Iftype => {
-                    interface_type = attributes::InterfaceType::from(
-                        attr.as_u32().unwrap_or(0));
-                }
-                attributes::Attribute::WiphyTxPowerLevel => {
-                    tx_power_level = attr.as_u32().unwrap_or(0);
-                }
-                attributes::Attribute::Ssid => {
-                    ssid = Some(attr.as_string()?);
-                }
-                attributes::Attribute::ChannelWidth => {
-                    channel_width = Some(attr.as_u32()?);
-                }
-                attributes::Attribute::CenterFreq1 => {} // u32
-                attributes::Attribute::WiphyFreq => {} // u32
-                attributes::Attribute::Generation => (), // u32
-                attributes::Attribute::WiphyChannelType => {
-                    let channel_type = attr.as_u32()?;
-                    let mut cw = 0;
-                    match channel_type {
-                        0 => { cw = 20; }, // NL80211_CHAN_NO_HT
-                        1 => { cw = 20; }, // NL80211_CHAN_HT20
-                        2 => { cw = 40; }, // NL80211_CHAN_HT40MINUS
-                        3 => { cw = 40; }, // NL80211_CHAN_HT40PLUS
-                        _ => { println!("CT: other {}", channel_type); },
+            let identifier = attributes::Attribute::convert_from(attr.identifier);
+            if let Some(identifier) = identifier {
+                match identifier {
+                    attributes::Attribute::Wiphy => {
+                        phy_id = Some(attr.as_u32()?);
                     }
-                    if channel_width != None {
-                        channel_width = Some(cw);
-                        println!("CT: {:?}", channel_width);
+                    attributes::Attribute::Ifindex => {
+                        interface_index = Some(attr.as_u32()?);
                     }
-                },
-                _ => {
-                    println!("Skipping {:?} {}", identifier, attr.len());
-                },
+                    attributes::Attribute::Wdev => {
+                        device_id = Some(attr.as_u64()?);
+                    }
+                    attributes::Attribute::Ifname => {
+                        interface_name = Some(attr.as_string()?);
+                    }
+                    attributes::Attribute::Mac => {
+                        mac = Some(attr.as_hardware_address()?);
+                    }
+                    attributes::Attribute::Iftype => {
+                        interface_type = attributes::InterfaceType::from(
+                            attr.as_u32().unwrap_or(0));
+                    }
+                    attributes::Attribute::WiphyTxPowerLevel => {
+                        tx_power_level = attr.as_u32().unwrap_or(0);
+                    }
+                    attributes::Attribute::Ssid => {
+                        ssid = Some(attr.as_string()?);
+                    }
+                    attributes::Attribute::ChannelWidth => {
+                        channel_width = Some(attr.as_u32()?);
+                    }
+                    attributes::Attribute::CenterFreq1 => {} // u32
+                    attributes::Attribute::WiphyFreq => {} // u32
+                    attributes::Attribute::Generation => (), // u32
+                    attributes::Attribute::WiphyChannelType => {
+                        let channel_type = attr.as_u32()?;
+                        let mut cw = 0;
+                        match channel_type {
+                            0 => { cw = 20; }, // NL80211_CHAN_NO_HT
+                            1 => { cw = 20; }, // NL80211_CHAN_HT20
+                            2 => { cw = 40; }, // NL80211_CHAN_HT40MINUS
+                            3 => { cw = 40; }, // NL80211_CHAN_HT40PLUS
+                            _ => { println!("CT: other {}", channel_type); },
+                        }
+                        if channel_width != None {
+                            channel_width = Some(cw);
+                            println!("CT: {:?}", channel_width);
+                        }
+                    },
+                    identifier => {
+                        println!("Skipping {:?} {}", identifier, attr.len());
+                    },
+                }
+            }
+            else {
+                println!("Unknown identifier {}", attr.identifier);
             }
         }
         if let Some(id) = interface_index {

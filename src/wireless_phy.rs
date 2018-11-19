@@ -126,29 +126,34 @@ impl WirelessPhy {
         let mut commands = vec![];
         let mut phy_name = String::new();
         for attr in message.attributes {
-            let identifier = Attribute::from(attr.identifier);
-            match identifier {
-                Attribute::Wiphy => {
-                    phy_id = Some(attr.as_u32()?);
-                }
-                Attribute::WiphyName => {
-                    if let Ok(name) = attr.as_string() {
-                        phy_name = name;
+            let identifier = Attribute::convert_from(attr.identifier);
+            if let Some(identifier) = identifier {
+                match identifier {
+                    Attribute::Wiphy => {
+                        phy_id = Some(attr.as_u32()?);
                     }
-                }
-                Attribute::SupportedCommands => {
-                    let (_, attrs) = netlink::Attribute::unpack_all(
-                        &attr.as_bytes());
-                    for attr in attrs {
-                        if let Some(cmd) =
-                            Command::convert_from(attr.as_u32()? as u8) {
-                            commands.push(cmd);
+                    Attribute::WiphyName => {
+                        if let Ok(name) = attr.as_string() {
+                            phy_name = name;
                         }
                     }
+                    Attribute::SupportedCommands => {
+                        let (_, attrs) = netlink::Attribute::unpack_all(
+                            &attr.as_bytes());
+                        for attr in attrs {
+                            if let Some(cmd) =
+                                Command::convert_from(attr.as_u32()? as u8) {
+                                commands.push(cmd);
+                            }
+                        }
+                    }
+                    _ => {
+                        println!("Skipping {:?} {}", identifier, attr.len());
+                    },
                 }
-                _ => {
-                    println!("Skipping {:?} {}", identifier, attr.len());
-                },
+            }
+            else {
+                println!("Unknown identifier {}", attr.identifier);
             }
         }
         if phy_id.is_some() {
@@ -170,113 +175,115 @@ impl WirelessPhy {
         let mut commands = vec![];
         let mut phy_name = String::new();
         for attr in attributes {
-            let identifier = Attribute::from(attr.identifier);
-            match identifier {
-                Attribute::Generation => (),
-                Attribute::RoamSupport | Attribute::TdlsSupport |
-                Attribute::OffchannelTxOk => {
-                    if attr.len() != 0 {
-                        println!("[{:?}] {:?} {} Invalid type", phy_id,
-                            identifier, attr.len());
-                    }
-                }
-                Attribute::MaxNumScanSsids |
-                Attribute::MaxNumSchedScanSsids |
-                Attribute::MaxMatchSets | Attribute::WiphyRetryShort |
-                Attribute::WiphyRetryLong | Attribute::MaxNumPmkids |
-                Attribute::WiphyCoverageClass => {
-                    if let Err(_) = attr.as_u8() {
-                        println!("[{:?}] {:?} {} Invalid type", phy_id,
-                            identifier, attr.len());
-                    }
-                }
-                Attribute::MaxScanIeLen | Attribute::MaxSchedScanIeLen |
-                Attribute::MacAclMax |
-                Attribute::MaxRemainOnChannelDuration => {
-                    if let Err(_) = attr.as_u16() {
-                        println!("[{:?}] {:?} {} Invalid type", phy_id,
-                            identifier, attr.len());
-                    }
-                }
-                Attribute::Bands | Attribute::MaxNumSchedScanPlans |
-                Attribute::MaxScanPlanInterval |
-                Attribute::MaxScanPlanIterations |
-                Attribute::WiphyFragThreshold |
-                Attribute::WiphyRtsThreshold | 
-                Attribute::WiphyAntennaAvailTx |
-                Attribute::WiphyAntennaAvailRx |
-                Attribute::DeviceApSme => {
-                    if let Err(_) = attr.as_u32() {
-                        println!("[{:?}] {:?} {} Invalid type", phy_id,
-                            identifier, attr.len());
-                    }
-                }
-                Attribute::ExtFeatures => {
-                    assert!(attr.len() <= 4);
-                    let mut flags = 0u32;
-                    for b in attr.as_bytes() {
-                        flags |= b as u32;
-                        flags <<= 8;
-                    }
-                    let _flags =
-                        ExtendedFeaturesFlags::from_bits_truncate(flags);
-                }
-                Attribute::SoftwareIftypes => {
-                    if let Ok(v) = attr.as_u32() {
-                        let _it = InterfaceTypeFlags::from_bits_truncate(v);
-                    }
-                }
-                Attribute::SupportedIftypes => {
-                    let (_, attrs) = netlink::Attribute::unpack_all(
-                        &attr.as_bytes());
-                    let mut flags = InterfaceTypeFlags::empty();
-                    for attr in attrs {
-                        if let Some(it) =
-                            InterfaceType::convert_from(attr.identifier as u32)
-                        {
-                            let itf = InterfaceTypeFlags::from(it);
-                            flags |= itf;
+            let identifier = Attribute::convert_from(attr.identifier);
+            if let Some(identifier) = identifier {
+                match identifier {
+                    Attribute::Generation => (),
+                    Attribute::RoamSupport | Attribute::TdlsSupport |
+                    Attribute::OffchannelTxOk => {
+                        if attr.len() != 0 {
+                            println!("[{:?}] {:?} {} Invalid type", phy_id,
+                                identifier, attr.len());
                         }
                     }
-                }
-                Attribute::FeatureFlags => {
-                    let _ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
-                }
-                Attribute::CipherSuites => {
-                    let values = Vec::<u32>::unpack(&attr.as_bytes())?;
-                    let _ciphers: Vec<CipherSuite> = values.into_iter()
-                        .map(u32::to_be).map(CipherSuite::from).collect();
-                }
-                Attribute::Wiphy => {
-                    phy_id = Some(attr.as_u32()?);
-                }
-                Attribute::WiphyName => {
-                    if let Ok(name) = attr.as_string() {
-                        phy_name = name;
-                    }
-                }
-                Attribute::SupportedCommands => {
-                    let (_, attrs) = netlink::Attribute::unpack_all(
-                        &attr.as_bytes());
-                    for attr in attrs {
-                        if let Some(cmd) =
-                            Command::convert_from(attr.as_u32()? as u8) {
-                            commands.push(cmd);
+                    Attribute::MaxNumScanSsids |
+                    Attribute::MaxNumSchedScanSsids |
+                    Attribute::MaxMatchSets | Attribute::WiphyRetryShort |
+                    Attribute::WiphyRetryLong | Attribute::MaxNumPmkids |
+                    Attribute::WiphyCoverageClass => {
+                        if let Err(_) = attr.as_u8() {
+                            println!("[{:?}] {:?} {} Invalid type", phy_id,
+                                identifier, attr.len());
                         }
                     }
+                    Attribute::MaxScanIeLen | Attribute::MaxSchedScanIeLen |
+                    Attribute::MacAclMax |
+                    Attribute::MaxRemainOnChannelDuration => {
+                        if let Err(_) = attr.as_u16() {
+                            println!("[{:?}] {:?} {} Invalid type", phy_id,
+                                identifier, attr.len());
+                        }
+                    }
+                    Attribute::Bands | Attribute::MaxNumSchedScanPlans |
+                    Attribute::MaxScanPlanInterval |
+                    Attribute::MaxScanPlanIterations |
+                    Attribute::WiphyFragThreshold |
+                    Attribute::WiphyRtsThreshold | 
+                    Attribute::WiphyAntennaAvailTx |
+                    Attribute::WiphyAntennaAvailRx |
+                    Attribute::DeviceApSme => {
+                        if let Err(_) = attr.as_u32() {
+                            println!("[{:?}] {:?} {} Invalid type", phy_id,
+                                identifier, attr.len());
+                        }
+                    }
+                    Attribute::ExtFeatures => {
+                        assert!(attr.len() <= 4);
+                        let mut flags = 0u32;
+                        for b in attr.as_bytes() {
+                            flags |= b as u32;
+                            flags <<= 8;
+                        }
+                        let _flags =
+                            ExtendedFeaturesFlags::from_bits_truncate(flags);
+                    }
+                    Attribute::SoftwareIftypes => {
+                        if let Ok(v) = attr.as_u32() {
+                            let _it = InterfaceTypeFlags::from_bits_truncate(v);
+                        }
+                    }
+                    Attribute::SupportedIftypes => {
+                        let (_, attrs) = netlink::Attribute::unpack_all(
+                            &attr.as_bytes());
+                        let mut flags = InterfaceTypeFlags::empty();
+                        for attr in attrs {
+                            if let Some(it) =
+                                InterfaceType::convert_from(attr.identifier as u32)
+                            {
+                                let itf = InterfaceTypeFlags::from(it);
+                                flags |= itf;
+                            }
+                        }
+                    }
+                    Attribute::FeatureFlags => {
+                        let _ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
+                    }
+                    Attribute::CipherSuites => {
+                        let values = Vec::<u32>::unpack(&attr.as_bytes())?;
+                        let _ciphers: Vec<CipherSuite> = values.into_iter()
+                            .map(u32::to_be).map(CipherSuite::from).collect();
+                    }
+                    Attribute::Wiphy => {
+                        phy_id = Some(attr.as_u32()?);
+                    }
+                    Attribute::WiphyName => {
+                        if let Ok(name) = attr.as_string() {
+                            phy_name = name;
+                        }
+                    }
+                    Attribute::SupportedCommands => {
+                        let (_, attrs) = netlink::Attribute::unpack_all(
+                            &attr.as_bytes());
+                        for attr in attrs {
+                            if let Some(cmd) =
+                                Command::convert_from(attr.as_u32()? as u8) {
+                                commands.push(cmd);
+                            }
+                        }
+                    }
+                    Attribute::BssSelect => { /* TODO: Parse BssSelect */ }
+                    Attribute::WiphyBands => { /* TODO: Parse WiphyBands */ }
+                    Attribute::WowlanTriggersSupported => { /* TODO: Parse WowlanTriggersSupported */ }
+                    Attribute::TxFrameTypes => { /* TODO: Parse TxFrameTypes */ }
+                    Attribute::RxFrameTypes => { /* TODO: Parse RxFrameTypes */ }
+                    Attribute::InterfaceCombinations => { /* TODO: Parse InterfaceCombinations */ }
+                    Attribute::VendorData => { /* TODO: Parse VendorData */ }
+                    Attribute::VendorEvents => { /* TODO: Parse VendorEvents */ }
+                    _ => {
+                        println!("[{:?}] {:?} LEN: {}",
+                            phy_id, identifier, attr.len());
+                    },
                 }
-                Attribute::BssSelect => { /* TODO: Parse BssSelect */ }
-                Attribute::WiphyBands => { /* TODO: Parse WiphyBands */ }
-                Attribute::WowlanTriggersSupported => { /* TODO: Parse WowlanTriggersSupported */ }
-                Attribute::TxFrameTypes => { /* TODO: Parse TxFrameTypes */ }
-                Attribute::RxFrameTypes => { /* TODO: Parse RxFrameTypes */ }
-                Attribute::InterfaceCombinations => { /* TODO: Parse InterfaceCombinations */ }
-                Attribute::VendorData => { /* TODO: Parse VendorData */ }
-                Attribute::VendorEvents => { /* TODO: Parse VendorEvents */ }
-                _ => {
-                    println!("[{:?}] {:?} LEN: {}",
-                        phy_id, identifier, attr.len());
-                },
             }
         }
         if phy_id.is_some() {
@@ -331,9 +338,9 @@ pub fn get_wireless_phys(socket: &mut netlink::Socket, family_id: u16)
                     let mut phy_id = None;
                     new_attributes.clear();
                     for attr in gmsg.attributes {
-                        let identifier = Attribute::from(attr.identifier);
+                        let identifier = Attribute::convert_from(attr.identifier);
                         match identifier {
-                            Attribute::Wiphy => {
+                            Some(Attribute::Wiphy) => {
                                 phy_id = Some(attr.as_u32()?);
                                 new_attributes.push(attr);
                             }
