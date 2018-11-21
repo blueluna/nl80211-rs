@@ -73,7 +73,7 @@ impl Ssid {
             ISO_8859_1.decode(data, DecoderTrap::Strict)
                 .unwrap_or(String::new())
             );
-        let ssid = ssid.trim_end_matches('\0').to_string();
+        let ssid = ssid.trim_right_matches('\0').to_string();
         Ok(Ssid { ssid })
     }
 }
