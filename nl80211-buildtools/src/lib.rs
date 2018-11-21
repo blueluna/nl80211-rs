@@ -1,8 +1,12 @@
 extern crate serde;
 extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
-#[macro_use]
-extern crate serde_derive;
+#[macro_use] extern crate quote;
+extern crate proc_macro2;
+
+use proc_macro2::{Ident, Literal, Span, TokenStream};
+use quote::{TokenStreamExt, ToTokens};
 
 use std::fmt;
 use std::mem;
@@ -36,88 +40,169 @@ impl ValueType {
             ValueType::flag => { 0 }
         }
     }
-}
-
-impl fmt::Display for ValueType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    pub fn token(&self) -> TokenStream {
         match *self {
-            ValueType::u8 => { write!(f, "u8") }
-            ValueType::u16 => { write!(f, "u16") }
-            ValueType::u32 => { write!(f, "u32") }
-            ValueType::u64 => { write!(f, "u64") }
-            ValueType::i8 => { write!(f, "i8") }
-            ValueType::i16 => { write!(f, "i16") }
-            ValueType::i32 => { write!(f, "i32") }
-            ValueType::i64 => { write!(f, "i64") }
-            ValueType::string => { write!(f, "string") }
-            ValueType::bytes => { write!(f, "bytes") }
-            ValueType::nested => { write!(f, "nested") }
-            ValueType::flag => { write!(f, "flag") }
+            ValueType::u8 => { quote!(u8) }
+            ValueType::u16 => { quote!(u16) }
+            ValueType::u32 => { quote!(u32) }
+            ValueType::u64 => { quote!(u64) }
+            ValueType::i8 => { quote!(i8) }
+            ValueType::i16 => { quote!(i16) }
+            ValueType::i32 => { quote!(i32) }
+            ValueType::i64 => { quote!(i64) }
+            ValueType::string => { quote!(&str) }
+            ValueType::bytes => { quote!(&[u8]) }
+            ValueType::nested => { quote!(&[u8]) }
+            ValueType::flag => { quote!(&[u8]) }
         }
     }
+}
+
+impl ToTokens for ValueType {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let token = match *self {
+            ValueType::u8 => { Ident::new("u8", Span::call_site()) }
+            ValueType::u16 => { Ident::new("u16", Span::call_site()) }
+            ValueType::u32 => { Ident::new("u32", Span::call_site()) }
+            ValueType::u64 => { Ident::new("u64", Span::call_site()) }
+            ValueType::i8 => { Ident::new("i8", Span::call_site()) }
+            ValueType::i16 => { Ident::new("i16", Span::call_site()) }
+            ValueType::i32 => { Ident::new("i32", Span::call_site()) }
+            ValueType::i64 => { Ident::new("i64", Span::call_site()) }
+            ValueType::string => { Ident::new("&str", Span::call_site()) }
+            ValueType::bytes => { Ident::new("&[u8]", Span::call_site()) }
+            ValueType::nested => { Ident::new("&[u8]", Span::call_site()) }
+            ValueType::flag => { Ident::new("&[u8]", Span::call_site()) }
+        };
+        tokens.append(token);
+    }
+}
+
+fn make_attribute_enum(name: &TokenStream, labels: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        #[derive(Clone, Debug, PartialEq)]
+        pub enum #name {
+            #(#labels),*
+        }
+    }
+}
+
+fn make_attribute_from(name: &TokenStream, value_type: &TokenStream,
+    labels: &Vec<TokenStream>, values: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl From<#value_type> for #name {
+            fn from(value: #value_type) -> #name {
+                match value {
+                    #(#values => #labels),*,
+                    _ => panic!("Bad value"),
+                }
+            }
+        }
+    }
+}
+
+fn make_attribute_from_reverse(name: &TokenStream, value_type: &TokenStream,
+    labels: &Vec<TokenStream>, values: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl From<#name> for #value_type {
+            fn from(value: #name) -> #value_type {
+                match value {
+                    #(#labels => #values),*
+                }
+            }
+        }
+    }
+}
+
+fn make_attribute_partialeq(name: &TokenStream, value_type: &TokenStream,
+    labels: &Vec<TokenStream>, values: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl PartialEq<#value_type> for #name {
+            fn eq(&self, other: &#value_type) -> bool {
+                match *self {
+                    #(#labels => #values == *other),*
+                }
+            }
+        }
+    }
+}
+
+fn make_attribute_partialeq_reverse(name: &TokenStream, value_type: &TokenStream,
+    labels: &Vec<TokenStream>, values: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl PartialEq<#name> for #value_type {
+            fn eq(&self, other: &#name) -> bool {
+                match *other {
+                    #(#labels => #values == *self),*
+                }
+            }
+        }
+    }
+}
+
+fn make_attribute_convert_from(name: &TokenStream, value_type: &TokenStream,
+    labels: &Vec<TokenStream>, values: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl ConvertFrom<#value_type> for #name {
+            fn convert_from(value: #value_type) -> Option<#name> {
+                match value {
+                    #(#values => Some(#labels)),*,
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+
+fn make_attribute_fmt(name: &TokenStream, long_labels: &Vec<TokenStream>,
+    labels: &Vec<TokenStream>) -> TokenStream
+{
+    quote!{
+        impl fmt::Display for #name {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                match *self {
+                    #(#long_labels => write!(f, "{}", #labels)),*,
+                }
+            }
+        }
+    }
+}
+
+pub fn make_attribute(name: &str, value_type: ValueType, labels: Vec<Ident>,
+    values: Vec<Literal>) -> TokenStream
+{
+    let vt = quote!(#value_type);
+    let name_i = Ident::new(name, Span::call_site());
+    let name_ts = quote!(#name_i);
+    let labels_ts = labels.iter().map(|l| { quote!(#l) }).collect();
+    let values_ts = values.iter().map(|v| { quote!(#v) }).collect();
+
+    let mut code = TokenStream::new();
+
+    code.extend(make_attribute_enum(&name_ts, &labels_ts));
+    let long_labels_ts = labels.iter().map(|l| { quote!(#name_ts::#l) }).collect();
+    code.extend(make_attribute_from(&name_ts, &vt, &long_labels_ts, &values_ts));
+    code.extend(make_attribute_from_reverse(&name_ts, &vt, &long_labels_ts, &values_ts));
+    code.extend(make_attribute_partialeq(&name_ts, &vt, &long_labels_ts, &values_ts));
+    code.extend(make_attribute_partialeq_reverse(&name_ts, &vt, &long_labels_ts, &values_ts));
+    code.extend(make_attribute_convert_from(&name_ts, &vt, &long_labels_ts, &values_ts));
+    let txt_labels_ts = labels.iter().map(|l| {
+        let lit = Literal::string(&l.to_string()); quote!(#lit)
+        }).collect();
+    code.extend(make_attribute_fmt(&name_ts, &long_labels_ts, &txt_labels_ts));
+    code
 }
 
 trait Enumeration {
     type T: fmt::Display;
     fn value(&self) -> Self::T;
     fn original_name(&self) -> Option<String>;
-}
-
-fn generate_enum<E: Enumeration, W: Write>(name: &str, value_type: ValueType, items: &HashMap<String, E>, mut writer: W) -> io::Result<()> {
-    writeln!(writer, "#[derive(Clone, PartialEq, Debug)]")?;
-    writeln!(writer, "#[repr({})]", value_type)?;
-    writeln!(writer, "pub enum {} {{", name)?;
-    for (value_name, item) in items.iter() {
-        let mut line = format!("  {} = {},", value_name, &item.value());
-        if let Some(ref original_name) = item.original_name() {
-            line.push_str(&format!(" // {}", original_name));
-        }
-        writeln!(writer, "{}", line)?;
-    }
-    writeln!(writer, "}}")?;
-
-    writeln!(writer, "impl Into<{datatype}> for {name} {{
-  fn into(self) -> {datatype} {{
-    match self {{",
-    datatype=value_type, name=name)?;
-    for (value_name, item) in items.iter() {
-        writeln!(writer, "      {enum_name}::{name} => {value},",
-            enum_name=name, value=&item.value(), name=value_name)?;
-    }
-    writeln!(writer, "    }}\n  }}\n}}")?;
-
-    writeln!(writer, "impl From<{datatype}> for {name} {{
-  fn from(v: {datatype}) -> {name} {{
-    match v {{",
-    datatype=value_type, name=name)?;
-    for (value_name, item) in items.iter() {
-        writeln!(writer, "      {value} => {enum_name}::{name},",
-            enum_name=name, value=&item.value(), name=value_name)?;
-    }
-    writeln!(writer, "      _ => panic!(\"Bad value\"),")?;
-    writeln!(writer, "    }}\n  }}\n}}")?;
-
-    writeln!(writer, "impl ConvertFrom<{datatype}> for {name} {{
-  fn convert_from(v: {datatype}) -> Option<{name}> {{
-    match v {{",
-    datatype=value_type, name=name)?;
-    for (value_name, item) in items.iter() {
-        writeln!(writer, "      {value} => Some({enum_name}::{name}),",
-            enum_name=name, value=&item.value(), name=value_name)?;
-    }
-    writeln!(writer, "      _ => None,")?;
-    writeln!(writer, "    }}\n  }}\n}}")?;
-
-    writeln!(writer, "impl fmt::Display for {name} {{
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {{
-    match *self {{", name=name)?;
-    for (value_name, _) in items.iter() {
-        writeln!(writer, "      {enum_name}::{name} => write!(f, \"{name}\"),",
-            enum_name=name, name=value_name)?;
-    }
-    writeln!(writer, "    }}\n  }}\n}}")?;
-
-    Ok(())
 }
 
 #[derive(Serialize, Deserialize)]
@@ -131,6 +216,48 @@ impl Enumeration for EnumerationItem {
     type T = i64;
     fn value(&self) -> i64 { self.value }
     fn original_name(&self) -> Option<String> { self.original_name.clone() }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct EnumerationSpecification
+{
+    pub original_name: Option<String>,
+    pub value_type: ValueType,
+    pub default: Option<String>,
+    pub items: HashMap<String, EnumerationItem>
+}
+
+impl EnumerationSpecification {
+    fn value_to_literal(&self, value: i64) -> Literal
+    {
+        match self.value_type {
+            ValueType::u8 => { Literal::u8_suffixed(value as u8) }
+            ValueType::u16 => { Literal::u16_suffixed(value as u16) }
+            ValueType::u32 => { Literal::u32_suffixed(value as u32) }
+            ValueType::u64 => { Literal::u64_suffixed(value as u64) }
+            ValueType::i8 => { Literal::i8_suffixed(value as i8) }
+            ValueType::i16 => { Literal::i16_suffixed(value as i16) }
+            ValueType::i32 => { Literal::i32_suffixed(value as i32) }
+            ValueType::i64 => { Literal::i64_suffixed(value as i64) }
+            _ => panic!("Bad value type"),
+        }
+    }
+
+    fn generate_enum<W: Write>(&self, name: &str, writer: &mut W)
+        -> io::Result<()>
+    {
+        let labels = self.items.keys()
+            .map(|k| Ident::new(&k, Span::call_site())).collect();
+        let values = self.items.values()
+            .map(|v| self.value_to_literal(v.value)).collect();
+
+        let ts = make_attribute(name, self.value_type, labels, values);
+        let data = ts.to_string();
+        writer.write_all(data.as_bytes())?;
+
+        Ok(())
+    }
+
 }
 
 #[derive(Serialize, Deserialize)]
@@ -150,21 +277,6 @@ impl Enumeration for AttributeItem {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct EnumerationSpecification
-{
-    pub original_name: Option<String>,
-    pub value_type: ValueType,
-    pub default: Option<String>,
-    pub items: HashMap<String, EnumerationItem>
-}
-
-impl EnumerationSpecification {
-    fn generate_enum<W: Write>(&self, name: &str, writer: W) -> io::Result<()> {
-        generate_enum(name, self.value_type, &self.items, writer)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct AttributeSpecification
 {
     pub original_name: String,
@@ -174,8 +286,19 @@ pub struct AttributeSpecification
 }
 
 impl AttributeSpecification {
-    fn generate_enum<W: Write>(&self, name: &str, writer: W) -> io::Result<()> {
-        generate_enum(name, self.value_type, &self.items, writer)
+    fn generate_enum<W: Write>(&self, name: &str, writer: &mut W)
+        -> io::Result<()>
+    {
+        let labels = self.items.keys()
+            .map(|k| Ident::new(&k, Span::call_site())).collect();
+        let values = self.items.values()
+            .map(|v| Literal::u16_suffixed(v.value)).collect();
+
+        let ts = make_attribute(name, self.value_type, labels, values);
+        let data = ts.to_string();
+        writer.write_all(data.as_bytes())?;
+
+        Ok(())
     }
 }
 
@@ -197,18 +320,20 @@ impl Specification {
     }
 
     pub fn generate(&self, filepath: &str) -> io::Result<()> {
-        let out_file = std::fs::File::create(filepath)?;
-        writeln!(&out_file, "use std::convert::{{From, Into}};")?;
-        writeln!(&out_file, "use std::fmt;")?;
-        writeln!(&out_file, "use netlink_rust::ConvertFrom;")?;
-        writeln!(&out_file, "")?;
+        let mut out_file = std::fs::File::create(filepath)?;
+        let header = quote!(
+            use std::convert::From;
+            use std::fmt;
+            use netlink_rust::ConvertFrom;
+        );
+        writeln!(out_file, "{}", header.to_string())?;
 
         for (name, item) in &self.enumerations {
-            item.generate_enum(&name, &out_file)?;
+            item.generate_enum(&name, &mut out_file)?;
         }
 
         for (name, item) in &self.attributes {
-            item.generate_enum(&name, &out_file)?;
+            item.generate_enum(&name, &mut out_file)?;
         }
         Ok(())
     }

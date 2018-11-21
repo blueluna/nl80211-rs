@@ -7,57 +7,57 @@
       "value_type": "u32",
       "default": null,
       "items": {
-        "MeshPoint": {
-          "value": 7,
-          "original_name": "NL80211_IFTYPE_MESH_POINT"
-        },
         "Unspecified": {
           "value": 0,
           "original_name": "NL80211_IFTYPE_UNSPECIFIED"
-        },
-        "Wds": {
-          "value": 5,
-          "original_name": "NL80211_IFTYPE_WDS"
-        },
-        "Station": {
-          "value": 2,
-          "original_name": "NL80211_IFTYPE_STATION"
-        },
-        "P2pGo": {
-          "value": 9,
-          "original_name": "NL80211_IFTYPE_P2P_GO"
-        },
-        "Ap": {
-          "value": 3,
-          "original_name": "NL80211_IFTYPE_AP"
-        },
-        "P2pClient": {
-          "value": 8,
-          "original_name": "NL80211_IFTYPE_P2P_CLIENT"
-        },
-        "Nan": {
-          "value": 12,
-          "original_name": "NL80211_IFTYPE_NAN"
         },
         "Adhoc": {
           "value": 1,
           "original_name": "NL80211_IFTYPE_ADHOC"
         },
+        "Station": {
+          "value": 2,
+          "original_name": "NL80211_IFTYPE_STATION"
+        },
+        "Ap": {
+          "value": 3,
+          "original_name": "NL80211_IFTYPE_AP"
+        },
         "ApVlan": {
           "value": 4,
           "original_name": "NL80211_IFTYPE_AP_VLAN"
         },
-        "Ocb": {
-          "value": 11,
-          "original_name": "NL80211_IFTYPE_OCB"
+        "Wds": {
+          "value": 5,
+          "original_name": "NL80211_IFTYPE_WDS"
+        },
+        "Monitor": {
+          "value": 6,
+          "original_name": "NL80211_IFTYPE_MONITOR"
+        },
+        "MeshPoint": {
+          "value": 7,
+          "original_name": "NL80211_IFTYPE_MESH_POINT"
+        },
+        "P2pClient": {
+          "value": 8,
+          "original_name": "NL80211_IFTYPE_P2P_CLIENT"
+        },
+        "P2pGo": {
+          "value": 9,
+          "original_name": "NL80211_IFTYPE_P2P_GO"
         },
         "P2pDevice": {
           "value": 10,
           "original_name": "NL80211_IFTYPE_P2P_DEVICE"
         },
-        "Monitor": {
-          "value": 6,
-          "original_name": "NL80211_IFTYPE_MONITOR"
+        "Ocb": {
+          "value": 11,
+          "original_name": "NL80211_IFTYPE_OCB"
+        },
+        "Nan": {
+          "value": 12,
+          "original_name": "NL80211_IFTYPE_NAN"
         }
       }
     }

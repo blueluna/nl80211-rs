@@ -28,3 +28,7 @@ structopt = { version = "0.2", default-features = false }
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
+
+[profile.release]
+lto = true
+panic = 'abort'

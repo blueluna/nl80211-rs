@@ -299,14 +299,13 @@ impl WirelessInterface {
             }
             for m in messages {
                 let (_, msg) = generic::Message::unpack(&m.data)?;
-                let cmd = Command::from(msg.command);
-                if cmd == Command::GetRegulatory {
+                if msg.command == Command::GetRegulatory {
                     let info = RegulatoryInformation::from_message(
                         &msg)?;
                     println!("{}", info);
                 }
                 else {
-                    println!("{:?}", cmd);
+                    println!("{:?}", Command::from(msg.command));
                 }
             }
         }

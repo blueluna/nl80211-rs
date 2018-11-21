@@ -122,7 +122,7 @@ bitflags! {
 }
 
 impl WirelessPhy {
-    pub fn from_attributes(attributes: &Vec<netlink::Attribute>)
+    pub fn from_attributes(attributes: &[netlink::Attribute])
         -> Result<WirelessPhy, Error>
     {
         let mut phy_id = None;
@@ -160,7 +160,7 @@ impl WirelessPhy {
                     Attribute::WiphyRetryLong | Attribute::MaxNumPmkids |
                     Attribute::WiphyCoverageClass |
                     Attribute::MaxCsaCounters => {
-                        if let Err(_) = attr.as_u8() {
+                        if attr.as_u8().is_err() {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
                         }
@@ -168,7 +168,7 @@ impl WirelessPhy {
                     Attribute::MaxScanIeLen | Attribute::MaxSchedScanIeLen |
                     Attribute::MacAclMax |
                     Attribute::MaxRemainOnChannelDuration => {
-                        if let Err(_) = attr.as_u16() {
+                        if attr.as_u16().is_err() {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
                         }
@@ -185,7 +185,7 @@ impl WirelessPhy {
                     Attribute::TransmitQueueMemoryLimit |
                     Attribute::TransmitQueueSchedulerBytes |
                     Attribute::SchedScanMaxReqs => {
-                        if let Err(_) = attr.as_u32() {
+                        if attr.as_u32().is_err() {
                             println!("[{:?}] {:?} {} Invalid type", phy_id,
                                 identifier, attr.len());
                         }
@@ -194,7 +194,7 @@ impl WirelessPhy {
                         assert!(attr.len() <= 4);
                         let mut flags = 0u32;
                         for b in attr.as_bytes() {
-                            flags |= b as u32;
+                            flags |= u32::from(b);
                             flags <<= 8;
                         }
                         let _flags =
@@ -211,7 +211,7 @@ impl WirelessPhy {
                         let mut flags = InterfaceTypeFlags::empty();
                         for attr in attrs {
                             if let Some(it) =
-                                InterfaceType::convert_from(attr.identifier as u32)
+                                InterfaceType::convert_from(u32::from(attr.identifier))
                             {
                                 let itf = InterfaceTypeFlags::from(it);
                                 flags |= itf;
@@ -360,7 +360,7 @@ pub fn get_wireless_phys(socket: &mut netlink::Socket, family_id: u16)
             more = false;
         }
     }
-    if attributes.len() > 0 {
+    if !attributes.is_empty() {
         let phy = WirelessPhy::from_attributes(&attributes)?;
         phys.push(phy);
     }

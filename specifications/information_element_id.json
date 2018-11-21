@@ -1,223 +1,153 @@
 {
   "input_filepath": "somepath.h",
   "datetime": 0,
-  "enumerations": {},
-  "attributes": {
+  "enumerations": {
     "InformationElementId": {
       "original_name": "IE",
       "value_type": "u8",
       "items": {
         "Ssid": {
           "value": 0,
-          "original_name": "IE_SSID",
-          "data_type": "string",
-          "data_length": 0
+          "original_name": "IE_SSID"
         },
         "SupportRates": {
           "value": 1,
-          "original_name": "IE_DATA_RATES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_DATA_RATES"
         },
         "FrequencyHoppingParameters": {
           "value": 2,
-          "original_name": "IE_FH_PARAMETERS",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_FH_PARAMETERS"
         },
         "DirectSpectrumParameters": {
           "value": 3,
-          "original_name": "IE_DS_PARAMETERS",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_DS_PARAMETERS"
         },
         "ContentionFreeParameters": {
           "value": 4,
-          "original_name": "IE_CF_PARAMETERS",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_CF_PARAMETERS"
         },
         "TrafficIndicationMap": {
           "value": 5,
-          "original_name": "IE_TIM",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_TIM"
         },
         "IbssParameter": {
           "value": 6,
-          "original_name": "IE_IBSS_PARAMETER",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_IBSS_PARAMETER"
         },
         "Country": {
           "value": 7,
-          "original_name": "IE_COUNTRY",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_COUNTRY"
         },
         "BssLoad": {
           "value": 11,
-          "original_name": "IE_BSS_LOAD",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_BSS_LOAD"
         },
         "PowerConstraint": {
           "value": 32,
-          "original_name": "IE_POWER_CONSTRAINT",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_POWER_CONSTRAINT"
         },
         "TransmitPowerControlReport": {
           "value": 35,
-          "original_name": "IE_TPC_REPORT",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_TPC_REPORT"
         },
         "ExtendedRatePhyInfo": {
           "value": 42,
-          "original_name": "IE_ERP_INFO",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_ERP_INFO"
         },
         "HighThroughputCapabilities": {
           "value": 45,
-          "original_name": "IE_HT_CAPABILITIES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_HT_CAPABILITIES"
         },
         "ExtendedRatePhyInfoOld": {
           "value": 47,
-          "original_name": "IE_ERP_INFO_OLD",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_ERP_INFO_OLD"
         },
         "RobustSecurityNetwork": {
           "value": 48,
-          "original_name": "IE_RSN",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RSN"
         },
         "ExtededSupportRates": {
           "value": 50,
-          "original_name": "IE_EXTENDED_SUPPORT_RATES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_EXTENDED_SUPPORT_RATES"
         },
         "AccessPointChannelReport": {
           "value": 51,
-          "original_name": "IE_AP_CHANNEL_REPORT",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_AP_CHANNEL_REPORT"
         },
         "MobilityDomain": {
           "value": 54,
-          "original_name": "IE_MOBILITY_DOMAIN",
-          "data_type": "bytes",
-          "data_length": 3
+          "original_name": "IE_MOBILITY_DOMAIN"
         },
         "SupportedOperatingClasses": {
           "value": 59,
-          "original_name": "IE_SUPPORTED_OPERATING_CLASSES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_SUPPORTED_OPERATING_CLASSES"
         },
         "ExtendedChannelSwitchAnnouncement": {
           "value": 60,
-          "original_name": "IE_EXT_CHANSWITCH_ANN",
-          "data_type": "bytes",
-          "data_length": 4
+          "original_name": "IE_EXT_CHANSWITCH_ANN"
         },
         "HighThroughputOperation": {
           "value": 61,
-          "original_name": "IE_HT_OPERATION",
-          "data_type": "bytes",
-          "data_length": 22
+          "original_name": "IE_HT_OPERATION"
         },
         "SecondaryChannelOffset": {
           "value": 62,
-          "original_name": "IE_SECONDARY_CHANNEL_OFFSET",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_SECONDARY_CHANNEL_OFFSET"
         },
         "MeasurementPilotTransmission": {
           "value": 66,
-          "original_name": "IE_MEASUREMENT_PILOT_TRANSMISSION",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_MEASUREMENT_PILOT_TRANSMISSION"
         },
         "RoamingEnabledCapability": {
           "value": 70,
-          "original_name": "IE_RM_ENABLED_CAPABILITY",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RM_ENABLED_CAPABILITY"
         },
         "MultipleBSSID": {
           "value": 71,
-          "original_name": "IE_MULTIPLE_BSSID",
-          "data_type": "bytes",
-          "data_length": 1
+          "original_name": "IE_MULTIPLE_BSSID"
         },
         "OverlappingBssScanParameters": {
           "value": 74,
-          "original_name": "IE_OVERLAPPING_BSS_SCAN_PARAMETERS",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_OVERLAPPING_BSS_SCAN_PARAMETERS"
         },
         "ExtendedCapabilities": {
           "value": 127,
-          "original_name": "IE_EXTENDED_CAPABILITIES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_EXTENDED_CAPABILITIES"
         },
         "Reserved133CiscoCompatibleExtenstions1": {
           "value": 133,
-          "original_name": "IE_RESERVED_133",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RESERVED_133"
         },
         "Reserved136CiscoCompatibleExtenstions2": {
           "value": 136,
-          "original_name": "IE_RESERVED_136",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RESERVED_136"
         },
         "Reserved149CiscoCompatibleExtenstions3": {
           "value": 149,
-          "original_name": "IE_RESERVED_149",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RESERVED_149"
         },
         "Reserved150CiscoCompatibleExtenstions": {
           "value": 150,
-          "original_name": "IE_RESERVED_150",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_RESERVED_150"
         },
         "VeryHighThroughputCapabilities": {
           "value": 191,
-          "original_name": "IE_VHT_CAPABILITIES",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_VHT_CAPABILITIES"
         },
         "VeryHighThroughputOperation": {
           "value": 192,
-          "original_name": "IE_VHT_OPERATION",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_VHT_OPERATION"
         },
         "VeryHighThroughputTransmitterPowerEnvelope": {
           "value": 195,
-          "original_name": "IE_VHT_TX_POWER_ENVELOPE",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_VHT_TX_POWER_ENVELOPE"
         },
         "VendorSpecific": {
           "value": 221,
-          "original_name": "IE_VENDOR_SPECIFIC",
-          "data_type": "bytes",
-          "data_length": 0
+          "original_name": "IE_VENDOR_SPECIFIC"
         }
       }
     }
-  }
+  },
+  "attributes": {}
 }

@@ -71,7 +71,7 @@ impl Ssid {
         let ssid = String::from_utf8(data.to_vec()).unwrap_or_else(|_|
             // Then try ISO 8859-1
             ISO_8859_1.decode(data, DecoderTrap::Strict)
-                .unwrap_or(String::new())
+                .unwrap_or_default()
             );
         let ssid = ssid.trim_right_matches('\0').to_string();
         Ok(Ssid { ssid })

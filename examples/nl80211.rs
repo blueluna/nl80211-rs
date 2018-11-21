@@ -1,8 +1,12 @@
+
+
 extern crate libc;
 extern crate netlink_rust;
 extern crate mio;
 extern crate nl80211_rs;
-extern crate structopt;
+// following is macro_use is needed for at leas rust 1.24 but gives a warning on 1.30
+#[allow(unused_imports)]
+#[macro_use] extern crate structopt;
 
 /*
 use std::alloc::System;
