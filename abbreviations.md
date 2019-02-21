@@ -18,6 +18,7 @@
  - FT, Fast Transition
  - IBSS, Independent BSS, Ad-hoc network
  - IE, Information Element
+ - MCS, Modulation and Coding Scheme
  - MPP, Mesh Proxy Path
  - NDP, Null Data Packet
  - NAN, Neighborhood Area Network

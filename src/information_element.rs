@@ -448,11 +448,36 @@ impl ExtendedChannelSwitchAnnouncement {
     }
 }
 
+pub struct Country {
+    pub alpha2: String,
+}
+
+impl Country {
+    pub fn parse(data: &[u8])
+        -> Result<Country, Error>
+    {
+        if data.len() >= 6 {
+            let alpha2 = String::from_utf8(data[..2].to_vec()).unwrap();
+            return Ok(Country {
+                alpha2,
+            });
+        }
+        Err(io::Error::new(io::ErrorKind::InvalidData,
+                           "Invalid Country element").into())
+    }
+}
+
+pub struct ModulationCodingSchemeSet
+{
+    
+}
+
 pub enum InformationElement<'a> {
     Ssid(Ssid),
     RobustSecurityNetwork(RobustSecurityNetwork),
     HighThroughputOperation(HighThroughputOperation),
     VeryHighThroughputOperation(VeryHighThroughputOperation),
+    Country(Country),
     Other(RawInformationElement<'a>),
 }
 
@@ -476,6 +501,10 @@ impl<'a> InformationElement<'a> {
             InformationElementId::Ssid => {
                 let ie = Ssid::parse(data)?;
                 InformationElement::Ssid(ie)
+            },
+            InformationElementId::Country => {
+                let ie = Country::parse(data)?;
+                InformationElement::Country(ie)
             },
             InformationElementId::HighThroughputOperation => {
                 let ie = HighThroughputOperation::parse(data)?;
@@ -504,6 +533,9 @@ impl<'a> InformationElement<'a> {
         let id = match *self {
             InformationElement::Ssid(_) => {
                 InformationElementId::Ssid
+            },
+            InformationElement::Country(_) => {
+                InformationElementId::Country
             },
             InformationElement::HighThroughputOperation(_) => {
                 InformationElementId::HighThroughputOperation

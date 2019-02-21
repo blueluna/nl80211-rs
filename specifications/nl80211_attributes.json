@@ -1872,6 +1872,72 @@
           "data_length": 0
         }
       }
+    },
+    "BandAttributes": {
+      "original_name": "nl80211_band_attr",
+      "value_type": "u16",
+      "items": {
+        "Invalid": {
+          "value": 0,
+          "original_name": "__NL80211_BAND_ATTR_INVALID",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Frequencies": {
+          "value": 1,
+          "original_name": "NL80211_BAND_ATTR_FREQS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Rates": {
+          "value": 2,
+          "original_name": "NL80211_BAND_ATTR_RATES",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HtMcsSet": {
+          "value": 3,
+          "original_name": "NL80211_BAND_ATTR_HT_MCS_SET",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HtCapabilities": {
+          "value": 4,
+          "original_name": "NL80211_BAND_ATTR_HT_CAPA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HtAmpduFactor": {
+          "value": 5,
+          "original_name": "NL80211_BAND_ATTR_HT_AMPDU_FACTOR",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "HtAmpduDensity": {
+          "value": 6,
+          "original_name": "NL80211_BAND_ATTR_HT_AMPDU_DENSITY",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VhtMcsSet": {
+          "value": 7,
+          "original_name": "NL80211_BAND_ATTR_VHT_MCS_SET",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "VhtCapabilities": {
+          "value": 8,
+          "original_name": "NL80211_BAND_ATTR_VHT_CAPA",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "InterfaceTypeData": {
+          "value": 9,
+          "original_name": "NL80211_BAND_ATTR_IFTYPE_DATA",
+          "data_type": "bytes",
+          "data_length": 0
+        }
+      }
     }
   }
 }

@@ -3,10 +3,21 @@ use std::fmt;
 use netlink_rust as netlink;
 use netlink_rust::{Error, ConvertFrom, NativeUnpack};
 use netlink_rust::generic;
-use attributes::{Attribute, InterfaceType};
+use attributes::{self, Attribute, InterfaceType};
 use information_element::CipherSuite;
 use commands::Command;
 use super::join_to_string;
+
+
+#[allow(dead_code)]
+fn show_slice(slice: &[u8])
+{
+    print!("{} bytes\n", slice.len());
+    for byte in slice.iter() {
+        print!("{:02X} ", byte);
+    }
+    print!("\n");
+}
 
 pub struct WirelessPhy {
     identifier: u32,
@@ -93,9 +104,8 @@ impl From<InterfaceType> for InterfaceTypeFlags {
     }
 }
 
-/// This is the same as attributes::InterfaceType but as bit flags
 bitflags! {
-    pub struct ExtendedFeaturesFlags: u32 {
+    pub struct ExtendedFeaturesFlags: u64 {
         const VHT_IBSS                           = 1 << 0;
         const RRM                                = 1 << 1;
         const MU_MIMO_AIR_SNIFFER                = 1 << 2;
@@ -118,6 +128,17 @@ bitflags! {
         const OCE_PROBE_REQ_HIGH_TX_RATE         = 1 << 19;
         const OCE_PROBE_REQ_DEFERRAL_SUPPRESSION = 1 << 20;
         const MFP_OPTIONAL                       = 1 << 21;
+        const LOW_SPAN_SCAN                      = 1 << 22;
+        const LOW_POWER_SCAN                     = 1 << 23;
+        const HIGH_ACCURACY_SCAN                 = 1 << 24;
+        const DFS_OFFLOAD                        = 1 << 25;
+        const CONTROL_PORT_OVER_NL80211          = 1 << 26;
+        const DATA_ACK_SIGNAL_SUPPORT            = 1 << 27;
+        const TXQS                               = 1 << 28;
+        const SCAN_RANDOM_SN                     = 1 << 29;
+        const SCAN_MIN_PREQ_CONTENT              = 1 << 30;
+        const CAN_REPLACE_PTK0                   = 1 << 31;
+        const ENABLE_FTM_RESPONDER               = 1 << 32;
     }
 }
 
@@ -191,14 +212,17 @@ impl WirelessPhy {
                         }
                     }
                     Attribute::ExtFeatures => {
-                        assert!(attr.len() <= 4);
-                        let mut flags = 0u32;
-                        for b in attr.as_bytes() {
-                            flags |= u32::from(b);
-                            flags <<= 8;
+                        let mut flags = 0u64;
+                        if attr.len() >= 1 {
+                            for b in attr.as_bytes() {
+                                flags <<= 8;
+                                flags |= u64::from(b);
+                            }
                         }
-                        let _flags =
+                        let extended_features =
                             ExtendedFeaturesFlags::from_bits_truncate(flags);
+                        println!("[{:?}] {:?} LEN: {} {:#x} {:?}",
+                            phy_id, identifier, attr.len(), flags, extended_features);
                     }
                     Attribute::SoftwareIftypes => {
                         if let Ok(v) = attr.as_u32() {
@@ -220,7 +244,9 @@ impl WirelessPhy {
                         if_types = flags;
                     }
                     Attribute::FeatureFlags => {
-                        let _ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
+                        let ff = FeatureFlags::from_bits_truncate(attr.as_u32()?);
+                        println!("[{:?}] {:?} LEN: {} {:?}",
+                            phy_id, identifier, attr.len(), ff);
                     }
                     Attribute::CipherSuites => {
                         let values = Vec::<u32>::unpack(&attr.as_bytes())?;
@@ -244,10 +270,43 @@ impl WirelessPhy {
                     Attribute::ExtCapaMask => {
                         /* TODO: Parse ExtCapaMask */ }
                     Attribute::HtCapabilityMask => {
+                        println!("[{:?}] {:?} LEN: {}",
+                            phy_id, identifier, attr.len());
                         /* TODO: Parse HtCapabilityMask */ }
                     Attribute::VhtCapabilityMask => {
+                        println!("[{:?}] {:?} LEN: {}",
+                            phy_id, identifier, attr.len());
                         /* TODO: Parse VhtCapabilityMask */ }
                     Attribute::WiphyBands => {
+                        println!("[{:?}] {:?} LEN: {}",
+                            phy_id, identifier, attr.len());
+                        for band_attrs in netlink::nested_attribute_array(&attr.as_bytes()) {
+                            for band_attr in band_attrs {
+                                let band_id = attributes::BandAttributes::convert_from(band_attr.identifier);
+                                if let Some(id) = band_id {
+                                    println!("{:?} LEN {}", id, band_attr.len());
+                                    let data = band_attr.as_bytes();
+                                    match id {
+                                        attributes::BandAttributes::HtMcsSet => {
+                                            for (n, b) in data[0..10].iter().enumerate() {
+                                                println!("{:02x} {}", b, n);
+                                                for m in 0..7 {
+                                                    let i = n * 8 + m;
+                                                    let mask = 1u8 << m;
+                                                    if b & mask == mask {
+                                                        println!(" MSC{}", i);
+                                                    }
+                                                    else {
+                                                        println!("!MSC{}", i);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                            }
+                        }
                         /* TODO: Parse WiphyBands */ }
                     Attribute::WowlanTriggersSupported => {
                         /* TODO: Parse WowlanTriggersSupported */ }

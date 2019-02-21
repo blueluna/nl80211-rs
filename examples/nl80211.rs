@@ -63,6 +63,7 @@ enum AccessPointStatus {
 struct AccessPoint {
     bssid: HardwareAddress,
     ssid: String,
+    alpha2: String,
     signal: i32,
     frequency: u32,
     channel_1: u8,
@@ -121,10 +122,11 @@ impl fmt::Display for AccessPoint {
         };
         let akms = join_to_string(&self.akms, " ");
         let ciphers = join_to_string(&self.ciphers, " ");
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:4.0} {} {} {}-{}",
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:2} {:4.0} {} {} {}-{}",
             self.bssid, self.ssid, status_symbol, self.frequency,
             self.channel(), self.channel_1, self.channel_2,
-            self.channel_width, signal, bar_char, pmf_symbol, akms, ciphers)
+               self.channel_width, self.alpha2, signal, bar_char, pmf_symbol,
+               akms, ciphers)
     }
 }
 
@@ -133,6 +135,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     use nl80211::BssAttribute;
     let mut bssid = None;
     let mut ssid = None;
+    let mut alpha2 = None;
     let mut signal = None;
     let mut frequency = None;
     let mut channel_1 = 0;
@@ -213,6 +216,9 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                         InformationElement::Ssid(ref ie) => {
                             ssid = Some(ie.ssid.clone());
                         },
+                        InformationElement::Country(ref ie) => {
+                            alpha2 = Some(ie.alpha2.clone());
+                        },
                         InformationElement::HighThroughputOperation(ref ie) => {
                             if channel_width < ie.width {
                                 channel_width = ie.width;
@@ -236,7 +242,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                 akms.push(a.clone());
                             }
                         },
-                        _ => (),
+                        InformationElement::Other(_) => {},
                     }
                 }
             },
@@ -247,9 +253,11 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     }
     if bssid.is_some() && ssid.is_some() && signal.is_some() && frequency.is_some()
     {
+        let alpha2 = alpha2.unwrap_or(String::from("  "));
         return Ok(AccessPoint {
             bssid: bssid.unwrap(),
             ssid: ssid.unwrap(),
+            alpha2,
             signal: signal.unwrap(),
             frequency: frequency.unwrap(),
             channel_1: channel_1,
@@ -290,11 +298,13 @@ fn print_scan_results(access_points: &mut Vec<AccessPoint>) -> Result<(), Error>
 {
     let out = io::stdout();
     let mut handle = out.lock();
+    let num_aps = access_points.len();
     handle.write(b"Scan Results ---\n")?;
     access_points.sort_by(|a, b| b.signal.cmp(&a.signal).then(a.ssid.cmp(&b.ssid)));
     for ap in access_points {
         handle.write_fmt(format_args!("{}\n", ap))?;
     }
+    handle.write(format!("{} APs\n", num_aps).as_bytes())?;
     Ok(())
 }
 
