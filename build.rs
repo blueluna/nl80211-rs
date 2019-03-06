@@ -10,9 +10,7 @@ fn main() {
 
     let file = File::open("specifications/nl80211_commands.json").unwrap();
     match Specification::read(file) {
-        Ok(spec) => {
-            spec.generate(&format!("{}/commands.rs", out_dir)).unwrap()
-        }
+        Ok(spec) => spec.generate(&format!("{}/commands.rs", out_dir)).unwrap(),
         Err(error) => {
             panic!("Failed to load specification, {}", error);
         }
@@ -21,7 +19,8 @@ fn main() {
     let file = File::open("specifications/nl80211_attributes.json").unwrap();
     match Specification::read(file) {
         Ok(spec) => {
-            spec.generate(&format!("{}/attributes.rs", out_dir)).unwrap();
+            spec.generate(&format!("{}/attributes.rs", out_dir))
+                .unwrap();
         }
         Err(error) => {
             panic!("Failed to load specification, {}", error);
@@ -31,7 +30,8 @@ fn main() {
     let file = File::open("specifications/information_element_id.json").unwrap();
     match Specification::read(file) {
         Ok(spec) => {
-            spec.generate(&format!("{}/information_element_ids.rs", out_dir)).unwrap();
+            spec.generate(&format!("{}/information_element_ids.rs", out_dir))
+                .unwrap();
         }
         Err(error) => {
             panic!("Failed to load specification, {}", error);

@@ -1,14 +1,13 @@
-use std::fmt;
-use std::io;
-use netlink_rust::{Attribute, Error, HardwareAddress, MessageMode, Socket, ConvertFrom};
-use netlink_rust::generic;
 use attributes;
 use commands::Command;
+use netlink_rust::generic;
+use netlink_rust::{Attribute, ConvertFrom, Error, HardwareAddress, MessageMode, Socket};
 use regulatory::RegulatoryInformation;
+use std::fmt;
+use std::io;
 
 #[derive(PartialEq)]
-pub enum WirelessDeviceId
-{
+pub enum WirelessDeviceId {
     None,
     InterfaceIndex(u32),
     DeviceIdentifier(u64),
@@ -24,7 +23,7 @@ impl fmt::Display for WirelessDeviceId {
     }
 }
 
-pub struct WirelessInterface { 
+pub struct WirelessInterface {
     pub family: generic::Family,
     pub phy_id: u32,
     pub interface_name: String,
@@ -40,19 +39,32 @@ pub struct WirelessInterface {
 
 impl fmt::Display for WirelessInterface {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Name: {} Index: {} Address: {} Interface Type: \"{:?}\"",
-            self.interface_name, self.interface_index, self.mac,
-            self.interface_type)?;
-        if let Some(id) = self.device_id { write!(f, " Wireless Device Id: {}", id)?; };
-        if let Some(ref ssid) = self.ssid { write!(f, " SSID: {}", ssid)?; };
+        write!(
+            f,
+            "Name: {} Index: {} Address: {} Interface Type: \"{:?}\"",
+            self.interface_name, self.interface_index, self.mac, self.interface_type
+        )?;
+        if let Some(id) = self.device_id {
+            write!(f, " Wireless Device Id: {}", id)?;
+        };
+        if let Some(ref ssid) = self.ssid {
+            write!(f, " SSID: {}", ssid)?;
+        };
+        if let Some(ref cw) = self.channel_width {
+            write!(f, " Width: {}", cw)?;
+        };
+        if let Some(ref cw) = self.channel_width {
+            write!(f, " Width: {}", cw)?;
+        };
         Ok(())
     }
 }
 
 impl WirelessInterface {
-    pub fn from_message(message: generic::Message, family: generic::Family)
-        -> Result<WirelessInterface, Error>
-    {
+    pub fn from_message(
+        message: generic::Message,
+        family: generic::Family,
+    ) -> Result<WirelessInterface, Error> {
         let mut interface_name = None;
         let mut phy_id = None;
         let mut interface_index = None;
@@ -83,8 +95,8 @@ impl WirelessInterface {
                         mac = Some(attr.as_hardware_address()?);
                     }
                     attributes::Attribute::Iftype => {
-                        interface_type = attributes::InterfaceType::from(
-                            attr.as_u32().unwrap_or(0));
+                        interface_type =
+                            attributes::InterfaceType::from(attr.as_u32().unwrap_or(0));
                     }
                     attributes::Attribute::WiphyTxPowerLevel => {
                         tx_power_level = attr.as_u32().unwrap_or(0);
@@ -104,17 +116,27 @@ impl WirelessInterface {
                         };
                     }
                     attributes::Attribute::CenterFreq1 => {} // u32
-                    attributes::Attribute::WiphyFreq => {} // u32
+                    attributes::Attribute::WiphyFreq => {}   // u32
                     attributes::Attribute::Generation => (), // u32
                     attributes::Attribute::WiphyChannelType => {
                         let channel_type = attr.as_u32()?;
                         let mut cw = 0;
                         match channel_type {
-                            0 => { cw = 20; }, // NL80211_CHAN_NO_HT
-                            1 => { cw = 20; }, // NL80211_CHAN_HT20
-                            2 => { cw = 40; }, // NL80211_CHAN_HT40MINUS
-                            3 => { cw = 40; }, // NL80211_CHAN_HT40PLUS
-                            _ => { println!("CT: other {}", channel_type); },
+                            0 => {
+                                cw = 20;
+                            } // NL80211_CHAN_NO_HT
+                            1 => {
+                                cw = 20;
+                            } // NL80211_CHAN_HT20
+                            2 => {
+                                cw = 40;
+                            } // NL80211_CHAN_HT40MINUS
+                            3 => {
+                                cw = 40;
+                            } // NL80211_CHAN_HT40PLUS
+                            _ => {
+                                println!("CT: other {}", channel_type);
+                            }
                         }
                         if channel_width != None {
                             channel_width = Some(cw);
@@ -126,10 +148,9 @@ impl WirelessInterface {
                     }
                     identifier => {
                         println!("Skipping {:?} {}", identifier, attr.len());
-                    },
+                    }
                 }
-            }
-            else {
+            } else {
                 println!("Unknown identifier {}", attr.identifier);
             }
         }
@@ -139,8 +160,12 @@ impl WirelessInterface {
         if let Some(id) = device_id {
             wdev_id = WirelessDeviceId::DeviceIdentifier(id);
         }
-        if phy_id.is_some() && interface_name.is_some() && interface_index.is_some() && mac.is_some() {
-            Ok(WirelessInterface{
+        if phy_id.is_some()
+            && interface_name.is_some()
+            && interface_index.is_some()
+            && mac.is_some()
+        {
+            Ok(WirelessInterface {
                 family,
                 phy_id: phy_id.unwrap(),
                 interface_name: interface_name.unwrap(),
@@ -153,15 +178,16 @@ impl WirelessInterface {
                 channel_width,
                 wireless_device_id: wdev_id,
             })
-        }
-        else {
+        } else {
             Err(io::Error::new(io::ErrorKind::NotFound, "Wireless Interface Not Found").into())
         }
     }
 
-    pub fn prepare_message(&self, command: Command, mode: MessageMode)
-         -> Result<generic::Message, Error>
-    {
+    pub fn prepare_message(
+        &self,
+        command: Command,
+        mode: MessageMode,
+    ) -> Result<generic::Message, Error> {
         let mut tx_msg = generic::Message::new(self.family.id, command, mode);
         match self.wireless_device_id {
             WirelessDeviceId::DeviceIdentifier(id) => {
@@ -177,18 +203,18 @@ impl WirelessInterface {
         Ok(tx_msg)
     }
 
-    fn prepare_device_message(&self, command: Command, mode: MessageMode)
-        -> Result<generic::Message, Error>
-    {
+    fn prepare_device_message(
+        &self,
+        command: Command,
+        mode: MessageMode,
+    ) -> Result<generic::Message, Error> {
         let mut tx_msg = self.prepare_message(command, mode)?;
         tx_msg.append_attribute(Attribute::new(attributes::Attribute::Mac, self.mac));
         Ok(tx_msg)
     }
 
-    pub fn trigger_scan(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        let msg = self.prepare_message(Command::TriggerScan,
-            MessageMode::Acknowledge)?;
+    pub fn trigger_scan(&self, socket: &mut Socket) -> Result<(), Error> {
+        let msg = self.prepare_message(Command::TriggerScan, MessageMode::Acknowledge)?;
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
@@ -199,10 +225,8 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn abort_scan(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        let msg = self.prepare_message(Command::AbortScan,
-            MessageMode::Acknowledge)?;
+    pub fn abort_scan(&self, socket: &mut Socket) -> Result<(), Error> {
+        let msg = self.prepare_message(Command::AbortScan, MessageMode::Acknowledge)?;
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
@@ -213,11 +237,13 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn start_interval_scan(&self, socket: &mut Socket, interval: u32) -> Result<(), Error>
-    {
-        let mut msg = self.prepare_message(Command::StartScheduledScan,
-            MessageMode::Acknowledge)?;
-        msg.append_attribute(Attribute::new(attributes::Attribute::SchedScanInterval, interval));
+    pub fn start_interval_scan(&self, socket: &mut Socket, interval: u32) -> Result<(), Error> {
+        let mut msg =
+            self.prepare_message(Command::StartScheduledScan, MessageMode::Acknowledge)?;
+        msg.append_attribute(Attribute::new(
+            attributes::Attribute::SchedScanInterval,
+            interval,
+        ));
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
@@ -228,10 +254,9 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn stop_interval_scan(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        socket.send_message(&self.prepare_message(Command::StopScheduledScan,
-            MessageMode::None)?)?;
+    pub fn stop_interval_scan(&self, socket: &mut Socket) -> Result<(), Error> {
+        socket
+            .send_message(&self.prepare_message(Command::StopScheduledScan, MessageMode::None)?)?;
         loop {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
@@ -241,24 +266,25 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn get_survey(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        let msg = self.prepare_message(Command::GetSurvey,
-            MessageMode::Dump)?;
+    pub fn get_survey(&self, socket: &mut Socket) -> Result<(), Error> {
+        println!("Get Survey...");
+        let msg = self.prepare_message(Command::GetSurvey, MessageMode::Dump)?;
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
+                println!("Empty");
                 break;
             }
+            println!("Messages {}", messages.len());
         }
         Ok(())
     }
 
-    pub fn disconnect(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        socket.send_message(&self.prepare_device_message(Command::Disconnect,
-            MessageMode::Acknowledge)?)?;
+    pub fn disconnect(&self, socket: &mut Socket) -> Result<(), Error> {
+        socket.send_message(
+            &self.prepare_device_message(Command::Disconnect, MessageMode::Acknowledge)?,
+        )?;
         loop {
             let messages = socket.receive_messages()?;
             if messages.is_empty() {
@@ -268,13 +294,12 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn connect(&self, socket: &mut Socket, ssid: &str, _: &str)
-        -> Result<(), Error>
-    {
-        let mut tx_msg = self.prepare_device_message(Command::Connect,
-            MessageMode::Acknowledge)?;
+    pub fn connect(&self, socket: &mut Socket, ssid: &str, _: &str) -> Result<(), Error> {
+        let mut tx_msg = self.prepare_device_message(Command::Connect, MessageMode::Acknowledge)?;
         tx_msg.append_attribute(Attribute::new_string_with_nul(
-            attributes::Attribute::Ssid, ssid));
+            attributes::Attribute::Ssid,
+            ssid,
+        ));
         socket.send_message(&tx_msg)?;
         loop {
             let messages = socket.receive_messages()?;
@@ -285,12 +310,10 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn get_regulatory(&self, socket: &mut Socket) -> Result<(), Error>
-    {
-        let msg = generic::Message::new(self.family.id, Command::GetRegulatory,
-            MessageMode::Dump);
+    pub fn get_regulatory(&self, socket: &mut Socket) -> Result<(), Error> {
+        let msg = generic::Message::new(self.family.id, Command::GetRegulatory, MessageMode::Dump);
         /* let msg = self.prepare_message(Command::GetRegulatory,
-            MessageMode::Dump)?; */
+        MessageMode::Dump)?; */
         socket.send_message(&msg)?;
         loop {
             let messages = socket.receive_messages()?;
@@ -300,11 +323,9 @@ impl WirelessInterface {
             for m in messages {
                 let (_, msg) = generic::Message::unpack(&m.data)?;
                 if msg.command == Command::GetRegulatory {
-                    let info = RegulatoryInformation::from_message(
-                        &msg)?;
+                    let info = RegulatoryInformation::from_message(&msg)?;
                     println!("{}", info);
-                }
-                else {
+                } else {
                     println!("{:?}", Command::from(msg.command));
                 }
             }
@@ -312,14 +333,12 @@ impl WirelessInterface {
         Ok(())
     }
 
-    pub fn set_regulatory(&self, socket: &mut Socket, alpha2: &str)
-        -> Result<(), Error> {
+    pub fn set_regulatory(&self, socket: &mut Socket, alpha2: &str) -> Result<(), Error> {
         {
             assert!(alpha2.len() == 2);
-            let mut msg = self.prepare_message(Command::RequestSetRegulatory,
-                MessageMode::Acknowledge)?;
-            let attr = Attribute::new_string_with_nul(
-                attributes::Attribute::RegAlpha2, alpha2);
+            let mut msg =
+                self.prepare_message(Command::RequestSetRegulatory, MessageMode::Acknowledge)?;
+            let attr = Attribute::new_string_with_nul(attributes::Attribute::RegAlpha2, alpha2);
             msg.append_attribute(attr);
             socket.send_message(&msg)?;
         }
@@ -336,14 +355,143 @@ impl WirelessInterface {
         }
         Ok(())
     }
+
+    pub fn set_channel(&self, socket: &mut Socket, frequency: u32) -> Result<(), Error> {
+        {
+            let mut msg = self.prepare_message(Command::SetChannel, MessageMode::Acknowledge)?;
+            let attr = Attribute::new(attributes::Attribute::WiphyFreq, frequency);
+            msg.append_attribute(attr);
+            socket.send_message(&msg)?;
+        }
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            for m in messages {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                let cmd = Command::from(msg.command);
+                println!("{:?}", cmd);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn get_station(&self, socket: &mut Socket) -> Result<(), Error> {
+        {
+            let msg = self.prepare_message(Command::GetStation, MessageMode::Dump)?;
+            socket.send_message(&msg)?;
+        }
+        loop {
+            let messages = socket.receive_messages()?;
+            if messages.is_empty() {
+                break;
+            }
+            
+            for m in messages {
+                let (_, msg) = generic::Message::unpack(&m.data)?;
+                match Command::from(msg.command) {
+                    Command::NewStation => {
+                        for ref attr in &msg.attributes {
+                            let attr_id = attributes::Attribute::from(attr.identifier);
+                            match attr_id {
+                                attributes::Attribute::Ifindex
+                                | attributes::Attribute::Generation
+                                | attributes::Attribute::Mac => {}
+                                attributes::Attribute::StaInfo => {
+                                    println!("Station");
+                                    let (_, attrs) = netlink_rust::Attribute::unpack_all(&attr.as_bytes());
+                                    for attr in attrs {
+                                        let attr_id = attributes::StationInformationAttributes::from(attr.identifier);
+                                        match attr_id {
+                                            attributes::StationInformationAttributes::InactiveTime => {
+                                                println!("Inactive time: {} ms", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ReceivedBytes => {
+                                                println!("Received bytes: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TransmittedBytes => {
+                                                println!("Transmitted bytes: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::Signal => {
+                                                println!("Signal: {} dBm", attr.as_i8().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ReceivedPackets => {
+                                                println!("Received Packets: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TransmittedPackets => {
+                                                println!("Transmitted Packets: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TransmitRetries => {
+                                                println!("Transmit Retries: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TransmitFailures => {
+                                                println!("Transmit Failures: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::SignalAverage => {
+                                                println!("Signal Average: {} dBm", attr.as_i8().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ConnectedTime => {
+                                                println!("Connected time: {} ms", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::BeaconLoss => {
+                                                println!("Beacon Loss: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TimingOffset => {
+                                                println!("Timing Offset: {} ms", attr.as_i64().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ReceivedBytes64 => {
+                                                println!("Received bytes: {}", attr.as_u64().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::TransmittedBytes64 => {
+                                                println!("Transmitted bytes: {}", attr.as_u64().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ChainSignal => {
+                                                println!("Chain Signal: {} dBm", attr.as_i8().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ChainSignalAverage => {
+                                                println!("Chain Signal Average: {} dBm", attr.as_i8().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ExpectedThroughput => {
+                                                println!("Expected Throughput: {} kbps", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ReceiveDropped => {
+                                                println!("Dropped receive packets: {}", attr.as_u32().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::ReceivedBeacons => {
+                                                println!("Received Beacons: {}", attr.as_u64().unwrap());
+                                            }
+                                            attributes::StationInformationAttributes::BeaconsSignalAverage => {
+                                                println!("Beacon Signal Average: {}", attr.as_i8().unwrap());
+                                            }
+                                            _ => {
+                                                println!("** Attribute: {:?}, Len: {}", attr_id, attr.len());
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    println!("Attribute: {:?}, Len: {}", attr_id, attr.len());
+                                }
+                            }
+                        }
+                    }
+                    cmd => {
+                        println!("Command {:?}", cmd);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
-pub fn get_wireless_interfaces(socket: &mut Socket, family: &generic::Family)
-    -> Result<Vec<WirelessInterface>, Error>
-{
+pub fn get_wireless_interfaces(
+    socket: &mut Socket,
+    family: &generic::Family,
+) -> Result<Vec<WirelessInterface>, Error> {
     {
-        let tx_msg = generic::Message::new(family.id, Command::GetInterface,
-            MessageMode::Dump);
+        let tx_msg = generic::Message::new(family.id, Command::GetInterface, MessageMode::Dump);
         socket.send_message(&tx_msg)?;
     }
     let mut devices = vec![];
@@ -355,8 +503,7 @@ pub fn get_wireless_interfaces(socket: &mut Socket, family: &generic::Family)
         for m in messages {
             if m.header.identifier == family.id {
                 let (_, gmsg) = generic::Message::unpack(&m.data)?;
-                if let Ok(wi) = WirelessInterface::from_message(gmsg,
-                    family.clone()) {
+                if let Ok(wi) = WirelessInterface::from_message(gmsg, family.clone()) {
                     devices.push(wi);
                 }
             }

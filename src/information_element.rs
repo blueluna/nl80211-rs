@@ -1,4 +1,3 @@
-
 //! ## Information Elements
 //!
 //! Somewhat structured data with 802.11 information data.
@@ -9,19 +8,18 @@
 //! * Wireshark 802.11 dissector, <https://raw.githubusercontent.com/wireshark/wireshark/master/epan/dissectors/packet-ieee80211.c>
 //! * Hostapd, <https://w1.fi/cgit/hostap/tree/src/common/ieee802_11_defs.h>
 
-use std::io;
+use std::convert::Into;
 use std::fmt;
-use std::convert::{Into};
+use std::io;
 
-use encoding::{Encoding, DecoderTrap};
 use encoding::all::ISO_8859_1;
+use encoding::{DecoderTrap, Encoding};
 
-use netlink_rust::{Error, ConvertFrom};
-use unpack::{LittleUnpack, unpack_vec};
 use information_element_ids::InformationElementId;
+use netlink_rust::{ConvertFrom, Error};
+use unpack::{unpack_vec, LittleUnpack};
 
-pub struct RawInformationElement<'a>
-{
+pub struct RawInformationElement<'a> {
     pub identifier: u8,
     pub data: &'a [u8],
 }
@@ -37,18 +35,19 @@ impl<'a> RawInformationElement<'a> {
         if data.len() < length {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
         }
-        Ok(RawInformationElement { identifier, data: &data[2..(length + 2)] })
+        Ok(RawInformationElement {
+            identifier,
+            data: &data[2..(length + 2)],
+        })
     }
 }
 
-pub struct InformationElements<'a>
-{
+pub struct InformationElements<'a> {
     pub elements: Vec<RawInformationElement<'a>>,
 }
 
 impl<'a> InformationElements<'a> {
-    pub fn parse(data: &'a [u8]) -> InformationElements<'a>
-    {
+    pub fn parse(data: &'a [u8]) -> InformationElements<'a> {
         let mut elements = vec![];
         let mut slice = data;
         while let Ok(ie) = RawInformationElement::parse(slice) {
@@ -59,20 +58,17 @@ impl<'a> InformationElements<'a> {
     }
 }
 
-pub struct Ssid
-{
-    pub ssid: String
+pub struct Ssid {
+    pub ssid: String,
 }
 
 impl Ssid {
-    pub fn parse(data: &[u8]) -> Result<Ssid, Error>
-    {
+    pub fn parse(data: &[u8]) -> Result<Ssid, Error> {
         // First try to decode utf8
         let ssid = String::from_utf8(data.to_vec()).unwrap_or_else(|_|
             // Then try ISO 8859-1
             ISO_8859_1.decode(data, DecoderTrap::Strict)
-                .unwrap_or_default()
-            );
+                .unwrap_or_default());
         let ssid = ssid.trim_right_matches('\0').to_string();
         Ok(Ssid { ssid })
     }
@@ -112,8 +108,7 @@ impl From<u32> for CipherSuite {
                 7 => GroupAddressedTrafficNotAllowed,
                 _ => Reserved(c),
             }
-        }
-        else {
+        } else {
             Vendor(v)
         }
     }
@@ -146,8 +141,7 @@ impl fmt::Display for CipherSuite {
             CounterModeCbcMacProtocol => write!(f, "CCMP"),
             WiredEquivalentPrivacy104 => write!(f, "WEP104"),
             BroadcastIntegrityProtocol => write!(f, "BIP"),
-            GroupAddressedTrafficNotAllowed =>
-                write!(f, "GroupAddressedTrafficNotAllowed"),
+            GroupAddressedTrafficNotAllowed => write!(f, "GroupAddressedTrafficNotAllowed"),
             Reserved(v) => write!(f, "Reserved {:02x}", v),
             Vendor(v) => write!(f, "Vendor {:08x}", v),
         }
@@ -186,8 +180,7 @@ impl From<u32> for AuthenticationKeyManagement {
                 9 => FastTransitionSAE,
                 _ => Reserved(c),
             }
-        }
-        else {
+        } else {
             AuthenticationKeyManagement::Vendor(v)
         }
     }
@@ -245,7 +238,6 @@ bitflags! {
     }
 }
 
-
 #[derive(Debug, PartialEq)]
 pub enum ProtectedManagementFramesMode {
     Disabled,
@@ -281,18 +273,17 @@ impl RobustSecurityNetwork {
             let value = u32::unpack_unchecked(&data[2..]);
             let suite = CipherSuite::from(value);
             let count = u16::unpack_unchecked(&data[6..]);
-            let (used, values) = unpack_vec::<u32>(&data[8..],
-                count as usize)?;
+            let (used, values) = unpack_vec::<u32>(&data[8..], count as usize)?;
             let mut offset = 8 + used;
-            let ciphers = values.into_iter()
-                .map(CipherSuite::from).collect();
+            let ciphers = values.into_iter().map(CipherSuite::from).collect();
             let (used, count) = u16::unpack_with_size(&data[offset..])?;
             offset += used;
-            let (used, values) = unpack_vec::<u32>(&data[offset..],
-                count as usize)?;
+            let (used, values) = unpack_vec::<u32>(&data[offset..], count as usize)?;
             offset += used;
-            let akms = values.into_iter()
-                .map(AuthenticationKeyManagement::from).collect();
+            let akms = values
+                .into_iter()
+                .map(AuthenticationKeyManagement::from)
+                .collect();
             let (_used, count) = u16::unpack_with_size(&data[offset..])?;
             let ptksa_counters = match count & 0x000c {
                 0x0004 => 2,
@@ -316,16 +307,13 @@ impl RobustSecurityNetwork {
                 gtksa_counters,
             });
         }
-	    Err(io::Error::new(io::ErrorKind::InvalidData,
-            "Invalid RSN element").into())
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into())
     }
 
-    pub fn pmf_mode(&self) -> ProtectedManagementFramesMode
-    {
+    pub fn pmf_mode(&self) -> ProtectedManagementFramesMode {
         if self.capabilities.intersects(RsnCapabilities::PMF_REQUIRED) {
             return ProtectedManagementFramesMode::Required;
-        }
-        else if self.capabilities.intersects(RsnCapabilities::PMF_CAPABLE) {
+        } else if self.capabilities.intersects(RsnCapabilities::PMF_CAPABLE) {
             return ProtectedManagementFramesMode::Capable;
         }
         ProtectedManagementFramesMode::Disabled
@@ -334,13 +322,16 @@ impl RobustSecurityNetwork {
 
 impl fmt::Display for RobustSecurityNetwork {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Cipher Suite {} Protected Management Frames {}",
-            self.cipher_suite, self.pmf_mode())
+        write!(
+            f,
+            "Cipher Suite {} Protected Management Frames {}",
+            self.cipher_suite,
+            self.pmf_mode()
+        )
     }
 }
 
-pub struct HighThroughputOperation
-{
+pub struct HighThroughputOperation {
     pub width: u32,
     pub primary_channel: u8,
     pub secondary_channel: u8,
@@ -362,20 +353,21 @@ impl HighThroughputOperation {
                 width,
             });
         }
-	    Err(io::Error::new(io::ErrorKind::InvalidData,
-            "Invalid VHT element").into())
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid VHT element").into())
     }
 }
 
 impl fmt::Display for HighThroughputOperation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Primary Channel {} Secondary Channel {} Bandwidth {}",
-            self.primary_channel, self.secondary_channel, self.width)
+        write!(
+            f,
+            "Primary Channel {} Secondary Channel {} Bandwidth {}",
+            self.primary_channel, self.secondary_channel, self.width
+        )
     }
 }
 
-pub struct VeryHighThroughputOperation
-{
+pub struct VeryHighThroughputOperation {
     pub width: u32,
     pub channel: u8,
     pub secondary_channel: u8,
@@ -397,15 +389,17 @@ impl VeryHighThroughputOperation {
                 secondary_channel: data[2],
             });
         }
-	    Err(io::Error::new(io::ErrorKind::InvalidData,
-            "Invalid VHT element").into())
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid VHT element").into())
     }
 }
 
 impl fmt::Display for VeryHighThroughputOperation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Primary Channel {} Secondary Channel {} Bandwidth {}",
-            self.channel, self.secondary_channel, self.width)
+        write!(
+            f,
+            "Primary Channel {} Secondary Channel {} Bandwidth {}",
+            self.channel, self.secondary_channel, self.width
+        )
     }
 }
 
@@ -415,8 +409,7 @@ pub enum ChannelSwitchMode {
 }
 
 impl From<u8> for ChannelSwitchMode {
-    fn from(v: u8) -> Self
-    {
+    fn from(v: u8) -> Self {
         match v {
             1 => ChannelSwitchMode::NoRestriction,
             _ => ChannelSwitchMode::NoTransmission,
@@ -432,19 +425,16 @@ pub struct ExtendedChannelSwitchAnnouncement {
 }
 
 impl ExtendedChannelSwitchAnnouncement {
-    pub fn parse(data: &[u8])
-        -> Result<ExtendedChannelSwitchAnnouncement, Error>
-    {
+    pub fn parse(data: &[u8]) -> Result<ExtendedChannelSwitchAnnouncement, Error> {
         if data.len() == 4 {
             return Ok(ExtendedChannelSwitchAnnouncement {
                 switch_mode: ChannelSwitchMode::from(data[0]),
                 new_operating_class: data[1],
                 new_channel: data[2],
-                switch_count: data[3]
+                switch_count: data[3],
             });
         }
-	    Err(io::Error::new(io::ErrorKind::InvalidData,
-            "Invalid ECSA element").into())
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid ECSA element").into())
     }
 }
 
@@ -453,24 +443,17 @@ pub struct Country {
 }
 
 impl Country {
-    pub fn parse(data: &[u8])
-        -> Result<Country, Error>
-    {
+    pub fn parse(data: &[u8]) -> Result<Country, Error> {
         if data.len() >= 6 {
             let alpha2 = String::from_utf8(data[..2].to_vec()).unwrap();
-            return Ok(Country {
-                alpha2,
-            });
+            return Ok(Country { alpha2 });
         }
-        Err(io::Error::new(io::ErrorKind::InvalidData,
-                           "Invalid Country element").into())
+        println!("Bad country element {}", data.len());
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid Country element").into())
     }
 }
 
-pub struct ModulationCodingSchemeSet
-{
-    
-}
+pub struct ModulationCodingSchemeSet {}
 
 pub enum InformationElement<'a> {
     Ssid(Ssid),
@@ -482,80 +465,65 @@ pub enum InformationElement<'a> {
 }
 
 impl<'a> InformationElement<'a> {
-    pub fn parse(data: &'a [u8]) -> Result<InformationElement<'a>, Error>
-    {
+    pub fn parse(data: &'a [u8]) -> Result<InformationElement<'a>, Error> {
         let raw = RawInformationElement::parse(data)?;
         let id = InformationElementId::convert_from(raw.identifier);
         if let Some(id) = id {
             return Self::from(id, raw.data);
-        }
-        else {
+        } else {
             return Ok(InformationElement::Other(raw));
         }
     }
 
-    pub fn from(id: InformationElementId, data: &'a [u8])
-        -> Result<InformationElement<'a>, Error>
-    {
+    pub fn from(id: InformationElementId, data: &'a [u8]) -> Result<InformationElement<'a>, Error> {
         let ie = match id {
             InformationElementId::Ssid => {
                 let ie = Ssid::parse(data)?;
                 InformationElement::Ssid(ie)
-            },
+            }
             InformationElementId::Country => {
                 let ie = Country::parse(data)?;
                 InformationElement::Country(ie)
-            },
+            }
             InformationElementId::HighThroughputOperation => {
                 let ie = HighThroughputOperation::parse(data)?;
                 InformationElement::HighThroughputOperation(ie)
-            },
+            }
             InformationElementId::VeryHighThroughputOperation => {
                 let ie = VeryHighThroughputOperation::parse(data)?;
                 InformationElement::VeryHighThroughputOperation(ie)
-            },
+            }
             InformationElementId::RobustSecurityNetwork => {
                 let ie = RobustSecurityNetwork::parse(data)?;
                 InformationElement::RobustSecurityNetwork(ie)
             }
-            _ => {
-                InformationElement::Other(
-                    RawInformationElement { identifier: id.into(), data }
-                )
-            }
+            _ => InformationElement::Other(RawInformationElement {
+                identifier: id.into(),
+                data,
+            }),
         };
         Ok(ie)
     }
 
-    pub fn identifier(&self)
-        -> Option<InformationElementId>
-    {
+    pub fn identifier(&self) -> Option<InformationElementId> {
         let id = match *self {
-            InformationElement::Ssid(_) => {
-                InformationElementId::Ssid
-            },
-            InformationElement::Country(_) => {
-                InformationElementId::Country
-            },
+            InformationElement::Ssid(_) => InformationElementId::Ssid,
+            InformationElement::Country(_) => InformationElementId::Country,
             InformationElement::HighThroughputOperation(_) => {
                 InformationElementId::HighThroughputOperation
-            },
+            }
             InformationElement::VeryHighThroughputOperation(_) => {
                 InformationElementId::VeryHighThroughputOperation
-            },
+            }
             InformationElement::RobustSecurityNetwork(_) => {
                 InformationElementId::RobustSecurityNetwork
             }
-            InformationElement::Other(ref ie) => {
-                InformationElementId::from(ie.identifier)
-            }
+            InformationElement::Other(ref ie) => InformationElementId::from(ie.identifier),
         };
         Some(id)
     }
 
-    pub fn parse_all(data: &'a [u8])
-        -> Result<Vec<InformationElement<'a>>, Error>
-    {
+    pub fn parse_all(data: &'a [u8]) -> Result<Vec<InformationElement<'a>>, Error> {
         let mut ies = vec![];
         let mut slice = data;
         while let Ok(raw) = RawInformationElement::parse(slice) {
@@ -563,8 +531,7 @@ impl<'a> InformationElement<'a> {
             let id = InformationElementId::convert_from(raw.identifier);
             let ie = if let Some(id) = id {
                 Self::from(id, raw.data)?
-            }
-            else {
+            } else {
                 InformationElement::Other(raw)
             };
             ies.push(ie);
@@ -589,9 +556,8 @@ mod tests {
     #[test]
     fn test_parse_ies() {
         let bytes = [
-            48, 6, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-            4, 0,
-            1, 2, 0x55, 0xaa, ];
+            48, 6, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 4, 0, 1, 2, 0x55, 0xaa,
+        ];
         let ies = InformationElements::parse(&bytes);
         assert_eq!(ies.elements.len(), 3);
     }

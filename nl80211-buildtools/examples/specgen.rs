@@ -3,16 +3,18 @@ extern crate nl80211_buildtools;
 extern crate regex;
 extern crate serde_json;
 
-use std::fs::{File};
-use std::io::{BufReader, BufRead};
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::time;
 
-use clap::{Arg, App};
-use regex::{Regex};
+use clap::{App, Arg};
+use regex::Regex;
 
-use nl80211_buildtools::{ValueType, EnumerationItem, AttributeItem,
-    EnumerationSpecification, AttributeSpecification, Specification};
+use nl80211_buildtools::{
+    AttributeItem, AttributeSpecification, EnumerationItem, EnumerationSpecification,
+    Specification, ValueType,
+};
 
 struct KernelEnum {
     pub name: String,
@@ -46,8 +48,7 @@ fn kernel_datatype<R: BufRead>(reader: R, name: &str) -> Option<(ValueType, usiz
                 1 => {
                     if end_re.is_match(&line) {
                         capture_state = 2;
-                    }
-                    else {
+                    } else {
                         lines.push(line);
                     }
                 }
@@ -72,44 +73,44 @@ fn kernel_datatype<R: BufRead>(reader: R, name: &str) -> Option<(ValueType, usiz
     match text.find("u64") {
         Some(_) => {
             data_type = Some(ValueType::u64);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("u32") {
         Some(_) => {
             data_type = Some(ValueType::u32);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("u16") {
         Some(_) => {
             data_type = Some(ValueType::u16);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("u8") {
         Some(_) => {
             data_type = Some(ValueType::u8);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("octet") {
         Some(_) => {
             data_type = Some(ValueType::bytes);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("bytes") {
         Some(_) => {
             data_type = Some(ValueType::bytes);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("nested") {
         Some(_) => {
             data_type = Some(ValueType::nested);
-        },
-        None => {},
+        }
+        None => {}
     }
     let bits_re = Regex::new(r"\s+(\d+)-bits?\s+").unwrap();
     match bits_re.captures(&text) {
@@ -120,31 +121,28 @@ fn kernel_datatype<R: BufRead>(reader: R, name: &str) -> Option<(ValueType, usiz
             }
             if bits == "16" {
                 data_type = Some(ValueType::u16);
-            }
-            else if bits == "24" {
+            } else if bits == "24" {
                 type_size = 3;
                 data_type = Some(ValueType::bytes);
-            }
-            else if bits == "32" {
+            } else if bits == "32" {
                 data_type = Some(ValueType::u32);
-            }
-            else if bits == "64" {
+            } else if bits == "64" {
                 data_type = Some(ValueType::u64);
             }
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("enum") {
         Some(_) => {
             data_type = Some(ValueType::u32);
-        },
-        None => {},
+        }
+        None => {}
     }
     match text.find("flag") {
         Some(_) => {
             data_type = Some(ValueType::flag);
-        },
-        None => {},
+        }
+        None => {}
     }
     if data_type != None {
         let dt = data_type.unwrap();
@@ -173,15 +171,15 @@ fn lookup_kernel_names(filename: &str, pattern: &str) -> Option<Vec<KernelEnum>>
             1 => {
                 if let Some(c) = value_re.captures(&line) {
                     let name = c.get(1).unwrap().as_str();
-                    values.push( KernelEnum { name: String::from(name), value: index } );
+                    values.push(KernelEnum {
+                        name: String::from(name),
+                        value: index,
+                    });
                     index = index + 1;
-                }
-                else if end_re.is_match(&line) {
+                } else if end_re.is_match(&line) {
                     capture_state = 2;
-                }
-                else if empty_re.is_match(&line) {
-                }
-                else {
+                } else if empty_re.is_match(&line) {
+                } else {
                     index = index + 1;
                     println!("X {}", &line);
                 }
@@ -212,22 +210,30 @@ fn main() {
     let matches = App::new("Specification generator")
         .version("0.1")
         .author("Erik Svensson <erik.public@gmail.com>")
-        .arg(Arg::with_name("input")
-            .short("i")
-            .required(true)
-            .takes_value(true))
-        .arg(Arg::with_name("name")
-            .short("n")
-            .required(true)
-            .takes_value(true))
-        .arg(Arg::with_name("type")
-            .short("t")
-            .required(false)
-            .takes_value(true))
-        .arg(Arg::with_name("output")
-            .short("o")
-            .required(true)
-            .takes_value(true))
+        .arg(
+            Arg::with_name("input")
+                .short("i")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("name")
+                .short("n")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("type")
+                .short("t")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("output")
+                .short("o")
+                .required(true)
+                .takes_value(true),
+        )
         .get_matches();
 
     let input_filepath = matches.value_of("input").unwrap();
@@ -238,14 +244,11 @@ fn main() {
         Some(t) => {
             if t == "attribute" {
                 GeneratorType::Attribute
-            }
-            else {
+            } else {
                 GeneratorType::Enum
             }
         }
-        None => {
-            GeneratorType::Enum
-        }
+        None => GeneratorType::Enum,
     };
 
     let mut enumerations = HashMap::new();
@@ -285,77 +288,77 @@ fn main() {
                     };
                 }
                 let data_type_length = match data_type {
-                    Some(dt) => {
-                        match dt {
-                            ValueType::string | ValueType::nested | ValueType::bytes =>
-                            {
-                                Some(0)
-                            }
-                            _ => { None }
-                        }
+                    Some(dt) => match dt {
+                        ValueType::string | ValueType::nested | ValueType::bytes => Some(0),
+                        _ => None,
                     },
                     None => None,
                 };
                 if value.value > max_value {
                     max_value = value.value;
                 }
-                attribute_items.insert(new_name,
+                attribute_items.insert(
+                    new_name,
                     AttributeItem {
                         value: value.value as u16,
                         original_name: original_name.to_owned(),
                         data_type: data_type.unwrap(),
                         data_length: data_type_length,
                         max_length: None,
-                    });
+                    },
+                );
             }
             GeneratorType::Enum => {
-                enumeration_items.insert(new_name,
+                enumeration_items.insert(
+                    new_name,
                     EnumerationItem {
                         value: value.value,
                         original_name: Some(original_name.to_owned()),
-                    });
+                    },
+                );
             }
         }
     }
     let enum_data_type;
     if max_value > u32::max_value() as i64 {
         enum_data_type = ValueType::u64;
-    }
-    else if max_value > u16::max_value() as i64 {
+    } else if max_value > u16::max_value() as i64 {
         enum_data_type = ValueType::u32;
-    }
-    else if max_value > u8::max_value() as i64 {
+    } else if max_value > u8::max_value() as i64 {
         enum_data_type = ValueType::u16;
-    }
-    else {
+    } else {
         enum_data_type = ValueType::u8;
     }
     if !attribute_items.is_empty() {
-        attributes.insert(new_enum_name.clone(), 
+        attributes.insert(
+            new_enum_name.clone(),
             AttributeSpecification {
                 original_name: enum_name.to_owned(),
                 value_type: ValueType::u16,
                 default: None,
                 items: attribute_items,
-            });
+            },
+        );
     }
     if !enumeration_items.is_empty() {
-        enumerations.insert(new_enum_name.clone(), 
+        enumerations.insert(
+            new_enum_name.clone(),
             EnumerationSpecification {
                 original_name: Some(enum_name.to_owned()),
                 value_type: enum_data_type,
                 default: None,
                 items: enumeration_items,
-            });
+            },
+        );
     }
     let sys_time = time::SystemTime::now();
     let elapsed = sys_time.duration_since(time::UNIX_EPOCH).unwrap();
     let spec = Specification {
-            input_filepath: String::from(input_filepath),
-            datetime: elapsed.as_secs(),
-            enumerations: enumerations,
-            attributes: attributes,
-        };
+        input_filepath: String::from(input_filepath),
+        datetime: elapsed.as_secs(),
+        enumerations: enumerations,
+        attributes: attributes,
+    };
     let mut out_file = File::create(output_filepath).unwrap();
     serde_json::to_writer_pretty(&mut out_file, &spec).unwrap();
 }

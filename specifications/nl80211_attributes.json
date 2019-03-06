@@ -1938,6 +1938,240 @@
           "data_length": 0
         }
       }
+    },
+    "StationInformationAttributes": {
+      "original_name": "nl80211_sta_info",
+      "value_type": "u16",
+      "items": {
+        "Invalid": {
+          "value": 0,
+          "original_name": "__NL80211_STA_INFO_INVALID",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "InactiveTime": {
+          "value": 1,
+          "original_name": "NL80211_STA_INFO_INACTIVE_TIME",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ReceivedBytes": {
+          "value": 2,
+          "original_name": "NL80211_STA_INFO_RX_BYTES",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TransmittedBytes": {
+          "value": 3,
+          "original_name": "NL80211_STA_INFO_TX_BYTES",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "MeshLinkLinkId": {
+          "value": 4,
+          "original_name": "NL80211_STA_INFO_LLID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "MeshPeerLinkId": {
+          "value": 5,
+          "original_name": "NL80211_STA_INFO_PLID",
+          "data_type": "u16",
+          "data_length": 0
+        },
+        "MeshPeerLinkState": {
+          "value": 6,
+          "original_name": "NL80211_STA_INFO_PLINK_STATE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Signal": {
+          "value": 7,
+          "original_name": "NL80211_STA_INFO_SIGNAL",
+          "data_type": "i8",
+          "data_length": 0
+        },
+        "TransmitBitrate": {
+          "value": 8,
+          "original_name": "NL80211_STA_INFO_TX_BITRATE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ReceivedPackets": {
+          "value": 9,
+          "original_name": "NL80211_STA_INFO_RX_PACKETS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TransmittedPackets": {
+          "value": 10,
+          "original_name": "NL80211_STA_INFO_TX_PACKETS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TransmitRetries": {
+          "value": 11,
+          "original_name": "NL80211_STA_INFO_TX_RETRIES",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TransmitFailures": {
+          "value": 12,
+          "original_name": "NL80211_STA_INFO_TX_FAILED",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "SignalAverage": {
+          "value": 13,
+          "original_name": "NL80211_STA_INFO_SIGNAL_AVG",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "ReceiveBitrate": {
+          "value": 14,
+          "original_name": "NL80211_STA_INFO_RX_BITRATE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "BssParameter": {
+          "value": 15,
+          "original_name": "NL80211_STA_INFO_BSS_PARAM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ConnectedTime": {
+          "value": 16,
+          "original_name": "NL80211_STA_INFO_CONNECTED_TIME",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "StationFlags": {
+          "value": 17,
+          "original_name": "NL80211_STA_INFO_STA_FLAGS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "BeaconLoss": {
+          "value": 18,
+          "original_name": "NL80211_STA_INFO_BEACON_LOSS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "TimingOffset": {
+          "value": 19,
+          "original_name": "NL80211_STA_INFO_T_OFFSET",
+          "data_type": "i64",
+          "data_length": 0
+        },
+        "LocalPowerMode": {
+          "value": 20,
+          "original_name": "NL80211_STA_INFO_LOCAL_PM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "PeerPowerMode": {
+          "value": 21,
+          "original_name": "NL80211_STA_INFO_PEER_PM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "NonPeerPowerMode": {
+          "value": 22,
+          "original_name": "NL80211_STA_INFO_NONPEER_PM",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ReceivedBytes64": {
+          "value": 23,
+          "original_name": "NL80211_STA_INFO_RX_BYTES64",
+          "data_type": "i64",
+          "data_length": 0
+        },
+        "TransmittedBytes64": {
+          "value": 24,
+          "original_name": "NL80211_STA_INFO_TX_BYTES64",
+          "data_type": "i64",
+          "data_length": 0
+        },
+        "ChainSignal": {
+          "value": 25,
+          "original_name": "NL80211_STA_INFO_CHAIN_SIGNAL",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "ChainSignalAverage": {
+          "value": 26,
+          "original_name": "NL80211_STA_INFO_CHAIN_SIGNAL_AVG",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "ExpectedThroughput": {
+          "value": 27,
+          "original_name": "NL80211_STA_INFO_EXPECTED_THROUGHPUT",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "ReceiveDropped": {
+          "value": 28,
+          "original_name": "NL80211_STA_INFO_RX_DROP_MISC",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "ReceivedBeacons": {
+          "value": 29,
+          "original_name": "NL80211_STA_INFO_BEACON_RX",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "BeaconsSignalAverage": {
+          "value": 30,
+          "original_name": "NL80211_STA_INFO_BEACON_SIGNAL_AVG",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "TidStatistics": {
+          "value": 31,
+          "original_name": "NL80211_STA_INFO_TID_STATS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "ReceiveDuration": {
+          "value": 32,
+          "original_name": "NL80211_STA_INFO_RX_DURATION",
+          "data_type": "u64",
+          "data_length": 0
+        },
+        "Padding": {
+          "value": 33,
+          "original_name": "NL80211_STA_INFO_PAD",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "AcknowledgeSignal": {
+          "value": 34,
+          "original_name": "NL80211_STA_INFO_ACK_SIGNAL",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "AcknowledgeSignalAverage": {
+          "value": 35,
+          "original_name": "NL80211_STA_INFO_ACK_SIGNAL_AVG",
+          "data_type": "i8",
+          "data_length": 0
+        },
+        "ReceivedPacketsMpdus": {
+          "value": 36,
+          "original_name": "NL80211_STA_INFO_RX_MPDUS",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "FrameCheckSequenceErrorCount": {
+          "value": 37,
+          "original_name": "NL80211_STA_INFO_FCS_ERROR_COUNT",
+          "data_type": "u32",
+          "data_length": 0
+        }
+      }
     }
   }
 }

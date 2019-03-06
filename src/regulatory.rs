@@ -1,9 +1,9 @@
 use std::fmt;
 
+use attributes::{Attribute, RegulatoryRuleAttribute};
 use netlink_rust as netlink;
 use netlink_rust::generic;
 use netlink_rust::Result;
-use attributes::{Attribute, RegulatoryRuleAttribute};
 
 bitflags! {
     pub struct RegulatoryFlags: u32 {
@@ -94,19 +94,22 @@ pub struct RegulatoryRule {
 
 impl fmt::Display for RegulatoryRule {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}-{} BW {:3.0} PWR {:3.1} GAIN {:4} {:4} {:?}",
-            f64::from(self.start) / 1000.0, f64::from(self.end) / 1000.0,
+        write!(
+            f,
+            "{}-{} BW {:3.0} PWR {:3.1} GAIN {:4} {:4} {:?}",
+            f64::from(self.start) / 1000.0,
+            f64::from(self.end) / 1000.0,
             f64::from(self.bandwidth) / 1000.0,
             f64::from(self.effective_power) / 1000.0,
             self.antenna_gain,
             self.channel_available_check_time,
-            self.flags)
+            self.flags
+        )
     }
 }
 
 impl RegulatoryRule {
-    fn from_attributes(attributes: Vec<netlink::Attribute>)
-        -> Result<RegulatoryRule> {
+    fn from_attributes(attributes: Vec<netlink::Attribute>) -> Result<RegulatoryRule> {
         let mut start = 0u32;
         let mut end = 0u32;
         let mut bandwidth = 0u32;
@@ -138,7 +141,7 @@ impl RegulatoryRule {
                 RegulatoryRuleAttribute::ChannelAvailableCheckTime => {
                     channel_available_check_time = attribute.as_u32()?;
                 }
-                _ => ()
+                _ => (),
             }
         }
         Ok(RegulatoryRule {
@@ -179,9 +182,7 @@ impl fmt::Display for RegulatoryInformation {
 }
 
 impl RegulatoryInformation {
-    pub fn from_message(message: &generic::Message)
-        -> Result<RegulatoryInformation>
-    {
+    pub fn from_message(message: &generic::Message) -> Result<RegulatoryInformation> {
         let mut country = String::new();
         let mut region = 0u8;
         let mut rules = vec![];
@@ -195,13 +196,12 @@ impl RegulatoryInformation {
                     region = attribute.as_u8()?;
                 }
                 Attribute::RegRules => {
-                    rules = RegulatoryRule::from_nested_attribute_array(
-                        &attribute.as_bytes());
+                    rules = RegulatoryRule::from_nested_attribute_array(&attribute.as_bytes());
                 }
-                _ => ()
+                _ => (),
             }
         }
-        Ok(RegulatoryInformation{
+        Ok(RegulatoryInformation {
             country,
             region: RegulatoryOrganization::from(region),
             rules,
@@ -217,15 +217,18 @@ pub struct RegulatoryChange {
 
 impl fmt::Display for RegulatoryChange {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{0:?} {1:?} \"{2}\"", self.region,   
-            self.initiator, self.country.as_ref().unwrap_or(&String::new()))
+        write!(
+            f,
+            "{0:?} {1:?} \"{2}\"",
+            self.region,
+            self.initiator,
+            self.country.as_ref().unwrap_or(&String::new())
+        )
     }
 }
 
 impl RegulatoryChange {
-    pub fn from_message(message: &generic::Message)
-        -> Result<RegulatoryChange>
-    {
+    pub fn from_message(message: &generic::Message) -> Result<RegulatoryChange> {
         let mut country = None;
         let mut region = 0u8;
         let mut initiator = 0u8;
@@ -243,10 +246,10 @@ impl RegulatoryChange {
                 Attribute::RegType => {
                     region = attribute.as_u8()?;
                 }
-                _ => ()
+                _ => (),
             }
         }
-        Ok(RegulatoryChange{
+        Ok(RegulatoryChange {
             country,
             region: RegulatoryRegion::from(region),
             initiator: RegulatoryInitiator::from(initiator),

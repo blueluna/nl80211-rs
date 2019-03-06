@@ -18,14 +18,18 @@
  - FT, Fast Transition
  - IBSS, Independent BSS, Ad-hoc network
  - IE, Information Element
+ - LLID, Mesh Local Link Identifier
+ - PLID, Mesh Peer Link Identifier
  - MCS, Modulation and Coding Scheme
  - MPP, Mesh Proxy Path
  - NDP, Null Data Packet
  - NAN, Neighborhood Area Network
  - OCB, Outside the Context of a BSS
  - P2P, Peer to Peer
+ - PLCP, Physical Layer Convergence Procedure
  - PMK, Pairwise Master Key
  - PMKSA, Pairwise Master Key Security Assicoation
+ - PPDU, PLCP Protocol Data Unit
  - QBSS, QOS enhanced Basic Service Set
  - REG, Regulatory Domain
  - RSN, Robust Security Network
