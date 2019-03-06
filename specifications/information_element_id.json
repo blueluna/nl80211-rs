@@ -50,6 +50,10 @@
           "value": 35,
           "original_name": "IE_TPC_REPORT"
         },
+        "ChannelSwitchAnnouncement": {
+          "value": 37,
+          "original_name": "IE_CSA"
+        },
         "ExtendedRatePhyInfo": {
           "value": 42,
           "original_name": "IE_ERP_INFO"

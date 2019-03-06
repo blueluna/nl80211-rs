@@ -60,6 +60,11 @@ enum AccessPointStatus {
     Joined,
 }
 
+enum ChannelSwitchAnnouncement {
+    None,
+    Announcement(u8),
+}
+
 struct AccessPoint {
     bssid: HardwareAddress,
     ssid: String,
@@ -73,6 +78,7 @@ struct AccessPoint {
     ciphers: Vec<CipherSuite>,
     akms: Vec<AuthenticationKeyManagement>,
     pmf: ProtectedManagementFramesMode,
+    csa: ChannelSwitchAnnouncement,
 }
 
 impl AccessPoint {
@@ -122,11 +128,15 @@ impl fmt::Display for AccessPoint {
         };
         let akms = join_to_string(&self.akms, " ");
         let ciphers = join_to_string(&self.ciphers, " ");
-        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:2} {:4.0} {} {} {}-{}",
+	let csa = if let ChannelSwitchAnnouncement::Announcement(channel) = self.csa {
+	   format!("CSA {}", channel)
+	}
+	else { String::new() };
+        write!(f, "{} {:32} {} {:4} {:3} {:3} {:3} {:3} {:2} {:4.0} {} {} {}-{} {}",
             self.bssid, self.ssid, status_symbol, self.frequency,
             self.channel(), self.channel_1, self.channel_2,
                self.channel_width, self.alpha2, signal, bar_char, pmf_symbol,
-               akms, ciphers)
+               akms, ciphers, csa)
     }
 }
 
@@ -146,6 +156,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
     let mut ciphers = vec![];
     let mut akms = vec![];
     let mut pmf = ProtectedManagementFramesMode::Disabled;
+    let mut csa = ChannelSwitchAnnouncement::None;
 
     for attr in attrs {
         let id = BssAttribute::from(attr.identifier);
@@ -193,6 +204,16 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
                                 if ie.data.len() == 4 {
                                     let new_channel = ie.data[2];
                                     println!("Beacon: Channel Switch: {:?} {}", ssid, new_channel);
+				    csa = ChannelSwitchAnnouncement::Announcement(new_channel);
+                                }
+                            }
+                            nl80211::InformationElementId::ChannelSwitchAnnouncement => {
+                                if ie.data.len() == 3 {
+                                    let mode = ie.data[0];
+                                    let new_channel = ie.data[1];
+                                    let count = ie.data[2];
+                                    println!("Beacon: Channel Switch: {:?} {} {} {}", ssid, mode, new_channel, count);
+				    csa = ChannelSwitchAnnouncement::Announcement(new_channel);
                                 }
                             }
                             nl80211::InformationElementId::RobustSecurityNetwork => {
@@ -260,13 +281,14 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error>
             alpha2,
             signal: signal.unwrap(),
             frequency: frequency.unwrap(),
-            channel_1: channel_1,
-            channel_2: channel_2,
-            channel_width: channel_width,
-            status: status,
-            ciphers: ciphers,
-            akms: akms,
-            pmf: pmf,
+            channel_1,
+            channel_2,
+            channel_width,
+            status,
+            ciphers,
+            akms,
+            pmf,
+	    csa,
         });
     }
     Err(io::Error::new(io::ErrorKind::NotFound, "Failed").into())
