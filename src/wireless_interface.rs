@@ -387,7 +387,7 @@ impl WirelessInterface {
             if messages.is_empty() {
                 break;
             }
-            
+
             for m in messages {
                 let (_, msg) = generic::Message::unpack(&m.data)?;
                 match Command::from(msg.command) {
@@ -400,9 +400,13 @@ impl WirelessInterface {
                                 | attributes::Attribute::Mac => {}
                                 attributes::Attribute::StaInfo => {
                                     println!("Station");
-                                    let (_, attrs) = netlink_rust::Attribute::unpack_all(&attr.as_bytes());
+                                    let (_, attrs) =
+                                        netlink_rust::Attribute::unpack_all(&attr.as_bytes());
                                     for attr in attrs {
-                                        let attr_id = attributes::StationInformationAttributes::from(attr.identifier);
+                                        let attr_id =
+                                            attributes::StationInformationAttributes::from(
+                                                attr.identifier,
+                                            );
                                         match attr_id {
                                             attributes::StationInformationAttributes::InactiveTime => {
                                                 println!("Inactive time: {} ms", attr.as_u32().unwrap());

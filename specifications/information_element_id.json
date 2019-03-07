@@ -142,9 +142,33 @@
           "value": 192,
           "original_name": "IE_VHT_OPERATION"
         },
+        "ExtendedBasicServiceSetLoad": {
+          "value": 193,
+          "original_name": "Extended BSS Load"
+        },
+        "WideBandwidthChannelSwitch": {
+          "value": 194,
+          "original_name": "Wide Bandwidth Channel Switch"
+        },
         "VeryHighThroughputTransmitterPowerEnvelope": {
           "value": 195,
           "original_name": "IE_VHT_TX_POWER_ENVELOPE"
+        },
+        "ChannelSwitchWrapper": {
+          "value": 196,
+          "original_name": "Channel Switch Wrapper"
+        },
+        "AssociationId": {
+          "value": 197,
+          "original_name": "AID"
+        },
+        "QuietChannel": {
+          "value": 198,
+          "original_name": "Quiet Channel"
+        },
+        "OperatingModeNotification": {
+          "value": 199,
+          "original_name": "Operating Mode Notification"
         },
         "VendorSpecific": {
           "value": 221,

@@ -216,43 +216,6 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
             BssAttribute::PrespData => (),
             BssAttribute::BeaconIes => {
                 let attr_data = &attr.as_bytes();
-                let ies = InformationElements::parse(attr_data);
-                for ref ie in ies.elements {
-                    if let Some(ie_id) = nl80211::InformationElementId::convert_from(ie.identifier)
-                    {
-                        match ie_id {
-                            nl80211::InformationElementId::ExtendedChannelSwitchAnnouncement => {
-                                if ie.data.len() == 4 {
-                                    let new_channel = ie.data[2];
-                                    println!("Beacon: Channel Switch: {:?} {}", ssid, new_channel);
-                                    csa = ChannelSwitchAnnouncement::Announcement(new_channel);
-                                }
-                            }
-                            nl80211::InformationElementId::ChannelSwitchAnnouncement => {
-                                if ie.data.len() == 3 {
-                                    let mode = ie.data[0];
-                                    let new_channel = ie.data[1];
-                                    let count = ie.data[2];
-                                    println!(
-                                        "Beacon: Channel Switch: {:?} {} {} {}",
-                                        ssid, mode, new_channel, count
-                                    );
-                                    csa = ChannelSwitchAnnouncement::Announcement(new_channel);
-                                }
-                            }
-                            nl80211::InformationElementId::RobustSecurityNetwork => {
-                                let _ie_rsn = nl80211::RobustSecurityNetwork::parse(&ie.data)?;
-                            }
-                            _ => (),
-                        }
-                    } else {
-                        println!("Beacon: {}", ie.identifier);
-                    }
-                }
-            }
-            BssAttribute::InformationElements => {
-                // Write a parser
-                let attr_data = &attr.as_bytes();
                 let ies = InformationElement::parse_all(attr_data)?;
                 for ref ie in ies {
                     match *ie {
@@ -261,6 +224,21 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
                         }
                         InformationElement::Country(ref ie) => {
                             alpha2 = Some(ie.alpha2.clone());
+                        }
+                        InformationElement::ChannelSwitchAnnouncement(ref ie) => {
+                            csa = ChannelSwitchAnnouncement::Announcement(ie.new_channel);
+                        }
+                        InformationElement::RobustSecurityNetwork(ref ie) => {
+                            pmf = ie.pmf_mode();
+                            for c in ie.ciphers.iter() {
+                                ciphers.push(c.clone());
+                            }
+                            for a in ie.akms.iter() {
+                                akms.push(a.clone());
+                            }
+                        }
+                        InformationElement::ExtendedChannelSwitchAnnouncement(ref ie) => {
+                            csa = ChannelSwitchAnnouncement::Announcement(ie.new_channel);
                         }
                         InformationElement::HighThroughputOperation(ref ie) => {
                             if channel_width < ie.width {
@@ -276,6 +254,30 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
                             channel_1 = ie.channel;
                             channel_2 = ie.secondary_channel;
                         }
+                        InformationElement::Other(ref _ie) => {
+                            println!(
+                                "Information Element: {:?}, Len: {}",
+                                _ie.ie_id(),
+                                _ie.data.len()
+                            );
+                        }
+                    }
+                }
+            }
+            BssAttribute::InformationElements => {
+                let attr_data = &attr.as_bytes();
+                let ies = InformationElement::parse_all(attr_data)?;
+                for ref ie in ies {
+                    match *ie {
+                        InformationElement::Ssid(ref ie) => {
+                            ssid = Some(ie.ssid.clone());
+                        }
+                        InformationElement::Country(ref ie) => {
+                            alpha2 = Some(ie.alpha2.clone());
+                        }
+                        InformationElement::ChannelSwitchAnnouncement(ref ie) => {
+                            csa = ChannelSwitchAnnouncement::Announcement(ie.new_channel);
+                        }
                         InformationElement::RobustSecurityNetwork(ref ie) => {
                             pmf = ie.pmf_mode();
                             for c in ie.ciphers.iter() {
@@ -285,7 +287,28 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
                                 akms.push(a.clone());
                             }
                         }
-                        InformationElement::Other(_) => {}
+                        InformationElement::ExtendedChannelSwitchAnnouncement(ref ie) => {
+                            csa = ChannelSwitchAnnouncement::Announcement(ie.new_channel);
+                        }
+                        InformationElement::HighThroughputOperation(ref ie) => {
+                            if channel_width < ie.width {
+                                channel_width = ie.width;
+                            }
+                            channel_1 = ie.primary_channel;
+                            channel_2 = ie.secondary_channel;
+                        }
+                        InformationElement::VeryHighThroughputOperation(ref ie) => {
+                            if channel_width < ie.width {
+                                channel_width = ie.width;
+                            }
+                            channel_1 = ie.channel;
+                            channel_2 = ie.secondary_channel;
+                        }
+                        InformationElement::Other(ref _ie) => {
+                            /*
+                            println!("Information Element: {:?}, Len: {}", _ie.ie_id(), _ie.data.len());
+                            */
+                        }
                     }
                 }
             }

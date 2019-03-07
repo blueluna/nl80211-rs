@@ -40,6 +40,10 @@ impl<'a> RawInformationElement<'a> {
             data: &data[2..(length + 2)],
         })
     }
+
+    pub fn ie_id(&self) -> Option<InformationElementId> {
+        InformationElementId::convert_from(self.identifier)
+    }
 }
 
 pub struct InformationElements<'a> {
@@ -367,10 +371,35 @@ impl fmt::Display for HighThroughputOperation {
     }
 }
 
+/// Maximum VHT MCS supported by a spatial stream
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MaxVhtMcs {
+    /// Support for VHT-MCS 0 - 7 for spatial stream n
+    VhtMcs0to7 = 0,
+    /// Support for VHT-MCS 0 - 8 for spatial stream n
+    VhtMcs0to8 = 1,
+    /// Support for VHT-MCS 0 - 9 for spatial stream n
+    VhtMcs0to9 = 2,
+    /// Spatial stream not supported
+    NotSupported = 3,
+}
+
+impl From<u8> for MaxVhtMcs {
+    fn from(v: u8) -> Self {
+        match v {
+            0 => MaxVhtMcs::VhtMcs0to7,
+            1 => MaxVhtMcs::VhtMcs0to8,
+            2 => MaxVhtMcs::VhtMcs0to9,
+            _ => MaxVhtMcs::NotSupported,
+        }
+    }
+}
+
 pub struct VeryHighThroughputOperation {
     pub width: u32,
     pub channel: u8,
     pub secondary_channel: u8,
+    pub max_vht_mcs_ss: [MaxVhtMcs; 8],
 }
 
 impl VeryHighThroughputOperation {
@@ -382,11 +411,20 @@ impl VeryHighThroughputOperation {
                 3 => 80,
                 _ => 40,
             };
-            // Skipping VHT-MCS set, 2 octets
+            let mut max_vht_mcs_ss = [MaxVhtMcs::NotSupported; 8];
+            max_vht_mcs_ss[0] = MaxVhtMcs::from((data[3] & 0b0000_0011) >> 0);
+            max_vht_mcs_ss[1] = MaxVhtMcs::from((data[3] & 0b0000_1100) >> 2);
+            max_vht_mcs_ss[2] = MaxVhtMcs::from((data[3] & 0b0011_0000) >> 4);
+            max_vht_mcs_ss[3] = MaxVhtMcs::from((data[3] & 0b1100_0000) >> 6);
+            max_vht_mcs_ss[4] = MaxVhtMcs::from((data[4] & 0b0000_0011) >> 0);
+            max_vht_mcs_ss[5] = MaxVhtMcs::from((data[4] & 0b0000_1100) >> 2);
+            max_vht_mcs_ss[6] = MaxVhtMcs::from((data[4] & 0b0011_0000) >> 4);
+            max_vht_mcs_ss[7] = MaxVhtMcs::from((data[4] & 0b1100_0000) >> 6);
             return Ok(VeryHighThroughputOperation {
                 width,
                 channel: data[1],
                 secondary_channel: data[2],
+                max_vht_mcs_ss,
             });
         }
         Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid VHT element").into())
@@ -414,6 +452,25 @@ impl From<u8> for ChannelSwitchMode {
             1 => ChannelSwitchMode::NoRestriction,
             _ => ChannelSwitchMode::NoTransmission,
         }
+    }
+}
+
+pub struct ChannelSwitchAnnouncement {
+    pub switch_mode: ChannelSwitchMode,
+    pub new_channel: u8,
+    pub switch_count: u8,
+}
+
+impl ChannelSwitchAnnouncement {
+    pub fn parse(data: &[u8]) -> Result<Self, Error> {
+        if data.len() == 4 {
+            return Ok(ChannelSwitchAnnouncement {
+                switch_mode: ChannelSwitchMode::from(data[0]),
+                new_channel: data[1],
+                switch_count: data[2],
+            });
+        }
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid CSA element").into())
     }
 }
 
@@ -453,22 +510,21 @@ impl Country {
     }
 }
 
-pub struct ModulationCodingSchemeSet {}
-
 pub enum InformationElement<'a> {
     Ssid(Ssid),
+    Country(Country),
+    ChannelSwitchAnnouncement(ChannelSwitchAnnouncement),
     RobustSecurityNetwork(RobustSecurityNetwork),
+    ExtendedChannelSwitchAnnouncement(ExtendedChannelSwitchAnnouncement),
     HighThroughputOperation(HighThroughputOperation),
     VeryHighThroughputOperation(VeryHighThroughputOperation),
-    Country(Country),
     Other(RawInformationElement<'a>),
 }
 
 impl<'a> InformationElement<'a> {
     pub fn parse(data: &'a [u8]) -> Result<InformationElement<'a>, Error> {
         let raw = RawInformationElement::parse(data)?;
-        let id = InformationElementId::convert_from(raw.identifier);
-        if let Some(id) = id {
+        if let Some(id) = raw.ie_id() {
             return Self::from(id, raw.data);
         } else {
             return Ok(InformationElement::Other(raw));
@@ -485,6 +541,18 @@ impl<'a> InformationElement<'a> {
                 let ie = Country::parse(data)?;
                 InformationElement::Country(ie)
             }
+            InformationElementId::ChannelSwitchAnnouncement => {
+                let ie = ChannelSwitchAnnouncement::parse(data)?;
+                InformationElement::ChannelSwitchAnnouncement(ie)
+            }
+            InformationElementId::RobustSecurityNetwork => {
+                let ie = RobustSecurityNetwork::parse(data)?;
+                InformationElement::RobustSecurityNetwork(ie)
+            }
+            InformationElementId::ExtendedChannelSwitchAnnouncement => {
+                let ie = ExtendedChannelSwitchAnnouncement::parse(data)?;
+                InformationElement::ExtendedChannelSwitchAnnouncement(ie)
+            }
             InformationElementId::HighThroughputOperation => {
                 let ie = HighThroughputOperation::parse(data)?;
                 InformationElement::HighThroughputOperation(ie)
@@ -492,10 +560,6 @@ impl<'a> InformationElement<'a> {
             InformationElementId::VeryHighThroughputOperation => {
                 let ie = VeryHighThroughputOperation::parse(data)?;
                 InformationElement::VeryHighThroughputOperation(ie)
-            }
-            InformationElementId::RobustSecurityNetwork => {
-                let ie = RobustSecurityNetwork::parse(data)?;
-                InformationElement::RobustSecurityNetwork(ie)
             }
             _ => InformationElement::Other(RawInformationElement {
                 identifier: id.into(),
@@ -509,14 +573,20 @@ impl<'a> InformationElement<'a> {
         let id = match *self {
             InformationElement::Ssid(_) => InformationElementId::Ssid,
             InformationElement::Country(_) => InformationElementId::Country,
+            InformationElement::ChannelSwitchAnnouncement(_) => {
+                InformationElementId::ChannelSwitchAnnouncement
+            }
+            InformationElement::RobustSecurityNetwork(_) => {
+                InformationElementId::RobustSecurityNetwork
+            }
+            InformationElement::ExtendedChannelSwitchAnnouncement(_) => {
+                InformationElementId::ExtendedChannelSwitchAnnouncement
+            }
             InformationElement::HighThroughputOperation(_) => {
                 InformationElementId::HighThroughputOperation
             }
             InformationElement::VeryHighThroughputOperation(_) => {
                 InformationElementId::VeryHighThroughputOperation
-            }
-            InformationElement::RobustSecurityNetwork(_) => {
-                InformationElementId::RobustSecurityNetwork
             }
             InformationElement::Other(ref ie) => InformationElementId::from(ie.identifier),
         };
