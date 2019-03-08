@@ -25,7 +25,7 @@ use mio::{Events, Poll, PollOpt, Ready, Token};
 
 use netlink_rust as netlink;
 use netlink_rust::generic;
-use netlink_rust::{ConvertFrom, Error, HardwareAddress, Message, MessageMode, Protocol, Socket};
+use netlink_rust::{Error, HardwareAddress, Message, MessageMode, Protocol, Socket};
 
 use nl80211_rs as nl80211;
 use nl80211_rs::InformationElement;

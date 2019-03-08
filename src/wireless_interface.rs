@@ -401,7 +401,7 @@ impl WirelessInterface {
                                 attributes::Attribute::StaInfo => {
                                     println!("Station");
                                     let (_, attrs) =
-                                        netlink_rust::Attribute::unpack_all(&attr.as_bytes());
+                                        Attribute::unpack_all(&attr.as_bytes());
                                     for attr in attrs {
                                         let attr_id =
                                             attributes::StationInformationAttributes::from(
