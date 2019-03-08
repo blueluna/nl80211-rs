@@ -13,7 +13,7 @@ extern crate netlink_rust;
 mod attributes;
 mod commands;
 mod frame;
-mod information_element;
+pub mod information_element;
 mod information_element_ids;
 mod regulatory;
 mod unpack;
@@ -23,11 +23,6 @@ mod wireless_phy;
 pub use attributes::{Attribute, BssAttribute, InterfaceType};
 pub use commands::Command;
 pub use frame::Frame;
-pub use information_element::{
-    AuthenticationKeyManagement, CipherSuite, ExtendedChannelSwitchAnnouncement,
-    HighThroughputOperation, InformationElement, InformationElements,
-    ProtectedManagementFramesMode, RobustSecurityNetwork, VeryHighThroughputOperation,
-};
 pub use information_element_ids::InformationElementId;
 pub use regulatory::{
     RegulatoryChange, RegulatoryInformation, RegulatoryInitiator, RegulatoryRegion,

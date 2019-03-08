@@ -1,7 +1,9 @@
 # IEEE 802.11 and NL80211 Abbreviations
 
+ - A-MPDU, Aggregate MAC Protocol Data Unit, containing multiple MPDUs
+ - A-MSDU, Aggregate MAC Service Data Unit, containing multiple MSDUs
  - ACL, Access Control Lists
- - AKM, Authentication Key Management
+ - AKM, Authentication and Key Management
  - ATIM, Announcement Traffic Indication Message
  - BIP, Broadcast/Multicast Integrity Protocol
  - BSS, Basic Service Set
@@ -12,16 +14,20 @@
  - CQM, Connection Quanlity Monitor
  - DFS, Dynamic Frequency Selection
  - DS, Direct Spectrum
- - FH, Frequency Hopping
  - EIRP, Effective Isotropic Radiated Power
  - ERP, Extended Rate PHY
+ - FH, Frequency Hopping
  - FT, Fast Transition
+ - GTKSA, Group Temporal Key Security Association
  - IBSS, Independent BSS, Ad-hoc network
  - IE, Information Element
  - LLID, Mesh Local Link Identifier
  - PLID, Mesh Peer Link Identifier
+ - MAC, Medium Access Control
  - MCS, Modulation and Coding Scheme
+ - MPDU, MAC Protocol Data Unit
  - MPP, Mesh Proxy Path
+ - MSDU, MAC Service Data Unit
  - NDP, Null Data Packet
  - NAN, Neighborhood Area Network
  - OCB, Outside the Context of a BSS
@@ -30,6 +36,7 @@
  - PMK, Pairwise Master Key
  - PMKSA, Pairwise Master Key Security Assicoation
  - PPDU, PLCP Protocol Data Unit
+ - PTKSA, Pairwise Transient Key Security Association
  - QBSS, QOS enhanced Basic Service Set
  - REG, Regulatory Domain
  - RSN, Robust Security Network

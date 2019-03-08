@@ -19,12 +19,25 @@ use information_element_ids::InformationElementId;
 use netlink_rust::{ConvertFrom, Error};
 use unpack::{unpack_vec, LittleUnpack};
 
+/// Unprocessed information element
+///
+/// ```notrust
+/// +------------+--------+-------------+
+/// | identifier | length | payload ... |
+/// +------------+--------+-------------+
+///       1           1         n          octets
+/// ```
+/// An information element has a identifier, length and payload. The first two octets is the
+/// identifier and length respectively. The payload comes at the end and contains length number of
+/// octets.
+///
 pub struct RawInformationElement<'a> {
     pub identifier: u8,
     pub data: &'a [u8],
 }
 
 impl<'a> RawInformationElement<'a> {
+    /// Parse information element from byte slice
     pub fn parse(data: &'a [u8]) -> Result<RawInformationElement<'a>, Error> {
         if data.len() < 2 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "").into());
@@ -40,12 +53,13 @@ impl<'a> RawInformationElement<'a> {
             data: &data[2..(length + 2)],
         })
     }
-
+    /// Get the information element identifier if the identifier is known
     pub fn ie_id(&self) -> Option<InformationElementId> {
         InformationElementId::convert_from(self.identifier)
     }
 }
 
+/// Multiple information elements
 pub struct InformationElements<'a> {
     pub elements: Vec<RawInformationElement<'a>>,
 }
@@ -62,11 +76,19 @@ impl<'a> InformationElements<'a> {
     }
 }
 
+/// Service set identifier (SSID) information element
+///
+/// A SSID is a string which contains a name for the entity.
 pub struct Ssid {
     pub ssid: String,
 }
 
 impl Ssid {
+    /// Parse information payload as SSID
+    ///
+    /// This function will try to decode the string as UTF-8 first, if UTF-8 decoding fails
+    /// try to decode using ISO-8859-1 dedoding, if all fails return an emty string,
+    ///
     pub fn parse(data: &[u8]) -> Result<Ssid, Error> {
         // First try to decode utf8
         let ssid = String::from_utf8(data.to_vec()).unwrap_or_else(|_|
@@ -84,22 +106,33 @@ impl fmt::Display for Ssid {
     }
 }
 
+/// Cipher suites used in 802.11
 #[derive(Debug, PartialEq, Clone)]
 pub enum CipherSuite {
+    /// Use group cipher suite
     UseGroupCipherSuite,
+    /// Wired equivalent privacy (WEP)
     WiredEquivalentPrivacy40,
+    /// Temporal key integrity protocol (TKIP)
     TemporalKeyIntegrityProtocol,
+    /// Counter mode CBC-MAC protocol
     CounterModeCbcMacProtocol,
+    /// Wired equivalent privacy (WEP104)
     WiredEquivalentPrivacy104,
+    /// Broadcast integrity protocol (BIP)
     BroadcastIntegrityProtocol,
+    /// Group traffic not allowed
     GroupAddressedTrafficNotAllowed,
+    /// 802.11 reserved cipher suites
     Reserved(u8),
+    /// Vendor cipher suite
     Vendor(u32),
 }
 
 impl From<u32> for CipherSuite {
+    /// Decode 32-bit unsigned integer as a cipher suite value
     fn from(v: u32) -> Self {
-        use CipherSuite::*;
+        use self::CipherSuite::*;
         if v & 0x00ff_ffff == 0x00ac_0f00 {
             let c = (v >> 24) as u8;
             match c {
@@ -119,8 +152,9 @@ impl From<u32> for CipherSuite {
 }
 
 impl From<CipherSuite> for u32 {
+    /// Encode cipher suite into 32-bit unsigned value
     fn from(v: CipherSuite) -> Self {
-        use CipherSuite::*;
+        use self::CipherSuite::*;
         match v {
             UseGroupCipherSuite => 0x00ac_0f00,
             WiredEquivalentPrivacy40 => 0x01ac_0f00,
@@ -137,7 +171,7 @@ impl From<CipherSuite> for u32 {
 
 impl fmt::Display for CipherSuite {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use CipherSuite::*;
+        use self::CipherSuite::*;
         match *self {
             UseGroupCipherSuite => write!(f, "GroupCipher"),
             WiredEquivalentPrivacy40 => write!(f, "WEP40"),
@@ -152,18 +186,30 @@ impl fmt::Display for CipherSuite {
     }
 }
 
+/// Authentication and key management (AKM) mode used in 802.11
 #[derive(Debug, PartialEq, Clone)]
 pub enum AuthenticationKeyManagement {
+    /// Pairwise master key security association (PMKSA)
     PairwiseMasterKeySecurityAssociation,
+    /// Pre-shared key (PSK)
     PreSharedKey,
+    /// Fast transition pairwise master key security association (FT-PMKSA)
     FastTransitionPMKSA,
+    /// Fast transition pre-shared key (FT-PSK)
     FastTransitionPreSharedKey,
+    /// Pairwise master key security association SHA256 (PMKSA-SHA256)
     PMKSASha256,
+    /// Pre-shared key SHA256 (PSK-SHA256)
     PreSharedKeySha256,
+    /// Tunneled direct link setup (TDLS)
     TunneledDirectLinkSetup,
+    /// Simultaneous authentication of equals (SAE)
     SimultaneousAuthenticationOfEquals,
+    /// Fast transition simultaneous authentication of equals (FT-SAE)
     FastTransitionSAE,
+    /// 802.11 reserved authentication key management
     Reserved(u8),
+    /// Vendor authentication key management
     Vendor(u32),
 }
 
@@ -171,7 +217,7 @@ impl From<u32> for AuthenticationKeyManagement {
     fn from(v: u32) -> Self {
         if v & 0x00ff_ffff == 0x00ac_0f00 {
             let c = (v >> 24) as u8;
-            use AuthenticationKeyManagement::*;
+            use self::AuthenticationKeyManagement::*;
             match c {
                 1 => PairwiseMasterKeySecurityAssociation,
                 2 => PreSharedKey,
@@ -192,7 +238,7 @@ impl From<u32> for AuthenticationKeyManagement {
 
 impl From<AuthenticationKeyManagement> for u32 {
     fn from(v: AuthenticationKeyManagement) -> Self {
-        use AuthenticationKeyManagement::*;
+        use self::AuthenticationKeyManagement::*;
         match v {
             PairwiseMasterKeySecurityAssociation => 0x01ac_0f00,
             PreSharedKey => 0x02ac_0f00,
@@ -211,7 +257,7 @@ impl From<AuthenticationKeyManagement> for u32 {
 
 impl fmt::Display for AuthenticationKeyManagement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use AuthenticationKeyManagement::*;
+        use self::AuthenticationKeyManagement::*;
         match *self {
             PairwiseMasterKeySecurityAssociation => write!(f, "PMKSA"),
             PreSharedKey => write!(f, "PSK"),
@@ -229,23 +275,38 @@ impl fmt::Display for AuthenticationKeyManagement {
 }
 
 bitflags! {
+    /// Robust security network (RSN) capabilities
     pub struct RsnCapabilities: u16 {
+        /// Signals support for pre-authentication
         const PREAUTHENTICATION = 0x0001;
+        /// Signals that simultanious WEP and pairwise key is not supported
         const NO_PAIRWISE = 0x0002;
+        /// Requires protected management frames
         const PMF_REQUIRED = 0x0040;
+        /// Capable of protected management frames
         const PMF_CAPABLE = 0x0080;
+        /// Support peer key handshake
         const PEER_KEY_ENABLED = 0x0200;
+        /// Capable of signaling and payload protected (SPP) A-MSDUs
         const SPP_AMSDU_CAPABLE = 0x0400;
+        /// Requires signaling and payload protected (SPP) A-MSDUs
         const SPP_AMSDU_REQUIRED = 0x0800;
+        /// protected block acknowledgement agreement capable
         const PBAC = 0x1000;
+        /// Support key id 0 or 1 for PTKSA or STKSA in CCMP mode, otherwise only key id 0 is
+        /// supported
         const EXTENDED_KEY_ID = 0x2000;
     }
 }
 
+/// Protected management frames selector
 #[derive(Debug, PartialEq)]
 pub enum ProtectedManagementFramesMode {
+    /// Protected management frames is disabled
     Disabled,
+    /// Capable of handling protected management frames
     Capable,
+    /// Protected management frames is required
     Required,
 }
 
@@ -259,18 +320,27 @@ impl fmt::Display for ProtectedManagementFramesMode {
     }
 }
 
+/// Robust security network (RSN) information element data
 #[derive(Debug)]
 pub struct RobustSecurityNetwork {
+    /// RSNA protocol version
     version: u16,
+    /// Group data cipher suit
     cipher_suite: CipherSuite,
+    /// Supported cipher suits
     pub ciphers: Vec<CipherSuite>,
+    /// Supported authentication key management
     pub akms: Vec<AuthenticationKeyManagement>,
+    /// Capabilities
     capabilities: RsnCapabilities,
+    /// Pairwise transient key security association replay counters
     ptksa_counters: u8,
+    /// group temporal key security association replay counters
     gtksa_counters: u8,
 }
 
 impl RobustSecurityNetwork {
+    /// Parse robust security network from information element payload
     pub fn parse(data: &[u8]) -> Result<RobustSecurityNetwork, Error> {
         if data.len() > 8 {
             let version = u16::unpack_unchecked(data);
@@ -313,7 +383,7 @@ impl RobustSecurityNetwork {
         }
         Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid RSN element").into())
     }
-
+    /// Get the protected management frame mode of the robust security network element
     pub fn pmf_mode(&self) -> ProtectedManagementFramesMode {
         if self.capabilities.intersects(RsnCapabilities::PMF_REQUIRED) {
             return ProtectedManagementFramesMode::Required;
@@ -335,13 +405,18 @@ impl fmt::Display for RobustSecurityNetwork {
     }
 }
 
+/// High throughput (HT) operation information element data
 pub struct HighThroughputOperation {
+    /// Channel width in MHz
     pub width: u32,
+    /// Primary channel number
     pub primary_channel: u8,
+    /// Secondary channel number
     pub secondary_channel: u8,
 }
 
 impl HighThroughputOperation {
+    /// Parse high throughput operation from information element payload
     pub fn parse(data: &[u8]) -> Result<HighThroughputOperation, Error> {
         if data.len() == 22 {
             let secondary_channel = match data[1] & 0x03 {
@@ -395,14 +470,20 @@ impl From<u8> for MaxVhtMcs {
     }
 }
 
+/// Very high throughput (VHT) operation information element data
 pub struct VeryHighThroughputOperation {
+    /// Channel width in MHx
     pub width: u32,
+    /// Channel number
     pub channel: u8,
+    /// Secondary channel number
     pub secondary_channel: u8,
+    /// Maxumum very high throughput modulation and coding scheme (VHT-MCS) for each spatial stream (SS)
     pub max_vht_mcs_ss: [MaxVhtMcs; 8],
 }
 
 impl VeryHighThroughputOperation {
+    /// Parse very high throughput operation from information element payload
     pub fn parse(data: &[u8]) -> Result<VeryHighThroughputOperation, Error> {
         if data.len() == 5 {
             let width = match data[0] & 0x03 {
@@ -441,27 +522,35 @@ impl fmt::Display for VeryHighThroughputOperation {
     }
 }
 
+/// Channel switch mode information element data
 pub enum ChannelSwitchMode {
+    /// No restrictions during channel switch
     NoRestriction = 0,
+    /// No transmission during channel switch
     NoTransmission = 1,
 }
 
 impl From<u8> for ChannelSwitchMode {
     fn from(v: u8) -> Self {
         match v {
-            1 => ChannelSwitchMode::NoRestriction,
-            _ => ChannelSwitchMode::NoTransmission,
+            1 => ChannelSwitchMode::NoTransmission,
+            _ => ChannelSwitchMode::NoRestriction,
         }
     }
 }
 
+/// Channel switch announcement (CSA) information element data
 pub struct ChannelSwitchAnnouncement {
+    /// Channel switch mode
     pub switch_mode: ChannelSwitchMode,
+    /// New channel to operate on
     pub new_channel: u8,
+    /// Countdown to switch
     pub switch_count: u8,
 }
 
 impl ChannelSwitchAnnouncement {
+    /// Parse channel switch announcement from information element payload
     pub fn parse(data: &[u8]) -> Result<Self, Error> {
         if data.len() == 4 {
             return Ok(ChannelSwitchAnnouncement {
@@ -474,14 +563,20 @@ impl ChannelSwitchAnnouncement {
     }
 }
 
+/// Extended channel switch (ECSA) information element data
 pub struct ExtendedChannelSwitchAnnouncement {
+    /// Channel switch mode
     pub switch_mode: ChannelSwitchMode,
+    /// New operating class
     pub new_operating_class: u8,
+    /// New channel to operate on
     pub new_channel: u8,
+    /// Countdown to switch
     pub switch_count: u8,
 }
 
 impl ExtendedChannelSwitchAnnouncement {
+    /// Parse extended channel switch announcement from information element payload
     pub fn parse(data: &[u8]) -> Result<ExtendedChannelSwitchAnnouncement, Error> {
         if data.len() == 4 {
             return Ok(ExtendedChannelSwitchAnnouncement {
@@ -495,11 +590,14 @@ impl ExtendedChannelSwitchAnnouncement {
     }
 }
 
+/// Country information element data
 pub struct Country {
+    /// Country code as ISO-3166 alpha-2
     pub alpha2: String,
 }
 
 impl Country {
+    /// Parse country from information element payload
     pub fn parse(data: &[u8]) -> Result<Country, Error> {
         if data.len() >= 6 {
             let alpha2 = String::from_utf8(data[..2].to_vec()).unwrap();
@@ -510,18 +608,28 @@ impl Country {
     }
 }
 
+/// Information element with processed payload
 pub enum InformationElement<'a> {
+    /// SSID information element
     Ssid(Ssid),
+    /// Country information element
     Country(Country),
+    /// Channel switsh announcement information element
     ChannelSwitchAnnouncement(ChannelSwitchAnnouncement),
+    /// Robust security network information element
     RobustSecurityNetwork(RobustSecurityNetwork),
+    /// Extended channel switsh announcement information element
     ExtendedChannelSwitchAnnouncement(ExtendedChannelSwitchAnnouncement),
+    /// High throughput operation information element
     HighThroughputOperation(HighThroughputOperation),
+    /// Very high throughput operation information element
     VeryHighThroughputOperation(VeryHighThroughputOperation),
+    /// Unprocessed information element
     Other(RawInformationElement<'a>),
 }
 
 impl<'a> InformationElement<'a> {
+    /// Parse byte slice into information element
     pub fn parse(data: &'a [u8]) -> Result<InformationElement<'a>, Error> {
         let raw = RawInformationElement::parse(data)?;
         if let Some(id) = raw.ie_id() {
@@ -531,6 +639,7 @@ impl<'a> InformationElement<'a> {
         }
     }
 
+    ///  Parse identifier and payload into information element
     pub fn from(id: InformationElementId, data: &'a [u8]) -> Result<InformationElement<'a>, Error> {
         let ie = match id {
             InformationElementId::Ssid => {
@@ -568,7 +677,7 @@ impl<'a> InformationElement<'a> {
         };
         Ok(ie)
     }
-
+    /// Get identifier for information element
     pub fn identifier(&self) -> Option<InformationElementId> {
         let id = match *self {
             InformationElement::Ssid(_) => InformationElementId::Ssid,
@@ -592,7 +701,7 @@ impl<'a> InformationElement<'a> {
         };
         Some(id)
     }
-
+    /// Parse sloce into a vector of information elements
     pub fn parse_all(data: &'a [u8]) -> Result<Vec<InformationElement<'a>>, Error> {
         let mut ies = vec![];
         let mut slice = data;

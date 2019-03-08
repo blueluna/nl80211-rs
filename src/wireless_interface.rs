@@ -400,8 +400,7 @@ impl WirelessInterface {
                                 | attributes::Attribute::Mac => {}
                                 attributes::Attribute::StaInfo => {
                                     println!("Station");
-                                    let (_, attrs) =
-                                        Attribute::unpack_all(&attr.as_bytes());
+                                    let (_, attrs) = Attribute::unpack_all(&attr.as_bytes());
                                     for attr in attrs {
                                         let attr_id =
                                             attributes::StationInformationAttributes::from(

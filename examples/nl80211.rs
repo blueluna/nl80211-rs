@@ -28,7 +28,7 @@ use netlink_rust::generic;
 use netlink_rust::{Error, HardwareAddress, Message, MessageMode, Protocol, Socket};
 
 use nl80211_rs as nl80211;
-use nl80211_rs::InformationElement;
+use nl80211_rs::information_element::{self, InformationElement};
 use nl80211_rs::*;
 
 use structopt::StructOpt;
@@ -76,9 +76,9 @@ struct AccessPoint {
     channel_2: u8,
     channel_width: u32,
     status: AccessPointStatus,
-    ciphers: Vec<CipherSuite>,
-    akms: Vec<AuthenticationKeyManagement>,
-    pmf: ProtectedManagementFramesMode,
+    ciphers: Vec<information_element::CipherSuite>,
+    akms: Vec<information_element::AuthenticationKeyManagement>,
+    pmf: information_element::ProtectedManagementFramesMode,
     csa: ChannelSwitchAnnouncement,
 }
 
@@ -130,9 +130,9 @@ impl fmt::Display for AccessPoint {
             AccessPointStatus::Joined => "→",
         };
         let pmf_symbol = match self.pmf {
-            ProtectedManagementFramesMode::Disabled => " ",
-            ProtectedManagementFramesMode::Capable => "C",
-            ProtectedManagementFramesMode::Required => "R",
+            information_element::ProtectedManagementFramesMode::Disabled => " ",
+            information_element::ProtectedManagementFramesMode::Capable => "C",
+            information_element::ProtectedManagementFramesMode::Required => "R",
         };
         let akms = join_to_string(&self.akms, " ");
         let ciphers = join_to_string(&self.ciphers, " ");
@@ -177,7 +177,7 @@ fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
     let (_, attrs) = netlink::Attribute::unpack_all(&data);
     let mut ciphers = vec![];
     let mut akms = vec![];
-    let mut pmf = ProtectedManagementFramesMode::Disabled;
+    let mut pmf = information_element::ProtectedManagementFramesMode::Disabled;
     let mut csa = ChannelSwitchAnnouncement::None;
 
     for attr in attrs {
