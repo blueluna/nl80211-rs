@@ -19,7 +19,7 @@ sudo ./target/release/examples/nl80211 scan
 
 ## Compatability
 
-Rust 1.20.0 or later is needed.
+Rust 1.30.0 or later is needed.
 
 Tested on following platforms,
  - Linux 4.18 x86_64, Fedora 28
