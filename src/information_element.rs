@@ -95,7 +95,7 @@ impl Ssid {
             // Then try ISO 8859-1
             ISO_8859_1.decode(data, DecoderTrap::Strict)
                 .unwrap_or_default());
-        let ssid = ssid.trim_right_matches('\0').to_string();
+        let ssid = ssid.trim_end_matches('\0').to_string();
         Ok(Ssid { ssid })
     }
 }
