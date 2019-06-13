@@ -164,7 +164,6 @@ impl fmt::Display for AccessPoint {
 }
 
 fn parse_bss(data: &[u8]) -> Result<AccessPoint, Error> {
-    use nl80211::BssAttribute;
     let mut bssid = None;
     let mut ssid = None;
     let mut alpha2 = None;

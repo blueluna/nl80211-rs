@@ -62,7 +62,7 @@ bitflags! {
     }
 }
 
-/// This is the same as attributes::InterfaceType but as bit flags
+// This is the same as attributes::InterfaceType but as bit flags
 bitflags! {
     pub struct InterfaceTypeFlags: u32 {
         const UNSPECIFIED = 1 << 0;
