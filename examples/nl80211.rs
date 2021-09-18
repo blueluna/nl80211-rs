@@ -843,7 +843,7 @@ fn main() {
                 }
             }
             UserCommand::DeviceInformation => {
-                let mut devices = nl80211::get_wireless_interfaces(&mut control_socket, &family)
+                let devices = nl80211::get_wireless_interfaces(&mut control_socket, &family)
                     .expect("Failed to get nl80211 wireless interfaces");
                 for dev in devices.into_iter() {
                     println!("{}", dev);

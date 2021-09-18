@@ -2172,6 +2172,126 @@
           "data_length": 0
         }
       }
+    },
+    "FrequencyAttribute": {
+      "original_name": "nl80211_frequency_attr",
+      "value_type": "u16",
+      "items": {
+        "Invalid": {
+          "value": 0,
+          "original_name": "__NL80211_FREQUENCY_ATTR_INVALID",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Frequency": {
+          "value": 1,
+          "original_name": "NL80211_FREQUENCY_ATTR_FREQ",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "Disabled": {
+          "value": 2,
+          "original_name": "NL80211_FREQUENCY_ATTR_DISABLED",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "NoIr": {
+          "value": 3,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_IR",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "NoIbss": {
+          "value": 4,
+          "original_name": "__NL80211_FREQUENCY_ATTR_NO_IBSS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Radar": {
+          "value": 5,
+          "original_name": "NL80211_FREQUENCY_ATTR_RADAR",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "TransmissionPower": {
+          "value": 6,
+          "original_name": "NL80211_FREQUENCY_ATTR_MAX_TX_POWER",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "DfsState": {
+          "value": 7,
+          "original_name": "NL80211_FREQUENCY_ATTR_DFS_STATE",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "DfsTime": {
+          "value": 8,
+          "original_name": "NL80211_FREQUENCY_ATTR_DFS_TIME",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Ht40Minus": {
+          "value": 9,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_HT40_MINUS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Ht40Plus": {
+          "value": 10,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_HT40_PLUS",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "No80MHz": {
+          "value": 11,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_80MHZ",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "No160MHz": {
+          "value": 12,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_160MHZ",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "DfsCacTime": {
+          "value": 13,
+          "original_name": "NL80211_FREQUENCY_ATTR_DFS_CAC_TIME",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "IndoorOnly": {
+          "value": 14,
+          "original_name": "NL80211_FREQUENCY_ATTR_INDOOR_ONLY",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "IrConcurrent": {
+          "value": 15,
+          "original_name": "NL80211_FREQUENCY_ATTR_IR_CONCURRENT",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "No20Mhz": {
+          "value": 16,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_20MHZ",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "No10Mhz": {
+          "value": 17,
+          "original_name": "NL80211_FREQUENCY_ATTR_NO_10MHZ",
+          "data_type": "bytes",
+          "data_length": 0
+        },
+        "Wmm": {
+          "value": 18,
+          "original_name": "NL80211_FREQUENCY_ATTR_WMM",
+          "data_type": "bytes",
+          "data_length": 0
+        }
+      }
     }
   }
 }

@@ -303,13 +303,11 @@ impl WirelessPhy {
                         /* TODO: Parse VhtCapabilityMask */
                     }
                     Attribute::WiphyBands => {
-                        println!("[{:?}] {:?} LEN: {}", phy_id, identifier, attr.len());
                         for band_attrs in netlink::nested_attribute_array(&attr.as_bytes()) {
                             for band_attr in band_attrs {
                                 let band_id =
                                     attributes::BandAttributes::convert_from(band_attr.identifier);
                                 if let Some(id) = band_id {
-                                    println!("{:?} LEN {}", id, band_attr.len());
                                     let data = band_attr.as_bytes();
                                     match id {
                                         attributes::BandAttributes::HtMcsSet => {
@@ -326,12 +324,67 @@ impl WirelessPhy {
                                                 }
                                             }
                                         }
-                                        _ => {}
+                                        attributes::BandAttributes::Frequencies => {
+                                            for freq_attrs in netlink::nested_attribute_array(&data)
+                                            {
+                                                for freq_attr in freq_attrs {
+                                                    if let Some(id) =
+                                                        attributes::FrequencyAttribute::convert_from(
+                                                            freq_attr.identifier,
+                                                        )
+                                                    {
+                                                        match id {
+                                                            attributes::FrequencyAttribute::Frequency => {
+                                                                let frequency = match freq_attr.as_u32() { Ok(f) => f, Err(_) => 0 };
+                                                                println!("{} {} MHz", id, frequency);
+                                                            }
+                                                            attributes::FrequencyAttribute::TransmissionPower => {
+                                                                let power = match freq_attr.as_u32() { Ok(p) => p, Err(_) => 0 };
+                                                                let power = f64::from(power) / 100.0;
+                                                                println!("{} {} dBm", id, power);
+                                                            }
+                                                            _ => {
+                                                                println!("{:04x} {} {}", freq_attr.identifier, id, freq_attr.len());
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        attributes::BandAttributes::Rates => {
+                                            for rate_attrs in netlink::nested_attribute_array(&data)
+                                            {
+                                                for rate_attr in rate_attrs {
+                                                    match rate_attr.identifier {
+                                                        1 => {
+                                                            let rate = match rate_attr.as_u32() {
+                                                                Ok(f) => f,
+                                                                Err(_) => 0,
+                                                            };
+                                                            let rate = u64::from(rate) * 100;
+                                                            println!("{} Khz", rate);
+                                                        }
+                                                        2 => {
+                                                            println!("Short preamble");
+                                                        }
+                                                        _ => {
+                                                            println!(
+                                                                "{:04x} {}",
+                                                                rate_attr.identifier,
+                                                                rate_attr.len()
+                                                            );
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        _ => {
+                                            println!("Wiphy band {:?} LEN {}", id, band_attr.len());
+                                        }
                                     }
                                 }
                             }
                         }
-                        /* TODO: Parse WiphyBands */
                     }
                     Attribute::WowlanTriggersSupported => {
                         /* TODO: Parse WowlanTriggersSupported */
