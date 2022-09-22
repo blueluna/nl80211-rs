@@ -1816,6 +1816,18 @@
           "original_name": "NL80211_BSS_PARENT_BSSID",
           "data_type": "bytes",
           "data_length": 6
+        },
+        "ChainSignal": {
+          "value": 19,
+          "original_name": "NL80211_BSS_CHAIN_SIGNAL",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "FrequencyOffset": {
+          "value": 20,
+          "original_name": "NL80211_BSS_FREQUENCY_OFFSET",
+          "data_type": "bytes",
+          "data_length": 6
         }
       }
     },

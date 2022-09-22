@@ -212,25 +212,25 @@ fn main() {
         .author("Erik Svensson <erik.public@gmail.com>")
         .arg(
             Arg::with_name("input")
-                .short("i")
+                .short('i')
                 .required(true)
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("name")
-                .short("n")
+                .short('n')
                 .required(true)
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("type")
-                .short("t")
+                .short('t')
                 .required(false)
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("output")
-                .short("o")
+                .short('o')
                 .required(true)
                 .takes_value(true),
         )

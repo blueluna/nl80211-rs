@@ -10,9 +10,9 @@ repository="https://github.com/blueluna/nl80211-rs"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-quote = "0.6"
-proc-macro2 = "0.4"
+quote = "1.0"
+proc-macro2 = "1.0"
 
 [dev-dependencies]
-clap = "2"
-regex = "0.2"
+clap = "3.2"
+regex = "1.6"

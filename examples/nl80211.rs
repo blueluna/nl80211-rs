@@ -20,8 +20,8 @@ use std::io::Write;
 use std::os::unix::io::AsRawFd;
 use std::time::{Duration, Instant};
 
-use mio::unix::EventedFd;
-use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::unix::SourceFd;
+use mio::{Events, Interest, Poll, Token};
 
 use netlink_rust as netlink;
 use netlink_rust::generic;
@@ -436,18 +436,16 @@ impl Monitor {
         let timeout = Duration::from_millis(500);
         const EVENT: Token = Token(1);
         const CONTROL: Token = Token(2);
-        let poll = Poll::new()?;
-        poll.register(
-            &EventedFd(&self.event_socket.as_raw_fd()),
+        let mut poll = Poll::new()?;
+        poll.registry().register(
+            &mut SourceFd(&self.event_socket.as_raw_fd()),
             EVENT,
-            Ready::readable(),
-            PollOpt::edge(),
+            Interest::READABLE,
         )?;
-        poll.register(
-            &EventedFd(&self.control_socket.as_raw_fd()),
+        poll.registry().register(
+            &mut SourceFd(&self.control_socket.as_raw_fd()),
             CONTROL,
-            Ready::readable(),
-            PollOpt::edge(),
+            Interest::READABLE,
         )?;
         let mut events = Events::with_capacity(1024);
         loop {

@@ -23,8 +23,8 @@ netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "maste
 
 [dev-dependencies]
 libc = "0.2"
-mio = "0.6"
-structopt = { version = "0.2", default-features = false }
+mio = { version = "0.8", features = ["os-ext", "os-poll"] }
+structopt = { version = "0.3", default-features = false }
 
 [badges]
 travis-ci = { repository = "blueluna/nl80211-rs", branch = "master" }
