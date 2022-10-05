@@ -1,6 +1,6 @@
 use std::fmt;
 
-use attributes::{Attribute, RegulatoryRuleAttribute};
+use crate::attributes::{Attribute, RegulatoryRuleAttribute};
 use netlink_rust as netlink;
 use netlink_rust::generic;
 use netlink_rust::Result;

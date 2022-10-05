@@ -1,7 +1,7 @@
 use super::join_to_string;
-use attributes::{self, Attribute, InterfaceType};
-use commands::Command;
-use information_element::CipherSuite;
+use crate::attributes::{self, Attribute, InterfaceType};
+use crate::commands::Command;
+use crate::information_element::CipherSuite;
 use netlink_rust as netlink;
 use netlink_rust::generic;
 use netlink_rust::{ConvertFrom, Error, NativeUnpack};
@@ -83,7 +83,7 @@ bitflags! {
 
 impl From<InterfaceType> for InterfaceTypeFlags {
     fn from(value: InterfaceType) -> InterfaceTypeFlags {
-        use InterfaceType::*;
+        use crate::InterfaceType::*;
         match value {
             Unspecified => InterfaceTypeFlags::UNSPECIFIED,
             Adhoc => InterfaceTypeFlags::ADHOC,

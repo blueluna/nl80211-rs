@@ -5,6 +5,7 @@ authors = ["Erik Svensson <erik.public@gmail.com>"]
 description="Tools for building datastructures and constants for nl80211"
 license="MIT"
 repository="https://github.com/blueluna/nl80211-rs"
+edition = "2018"
 
 [dependencies]
 serde = "1.0"

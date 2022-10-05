@@ -4,7 +4,7 @@ use std::io;
 
 use netlink_rust::{HardwareAddress, Result};
 
-use unpack::LittleUnpack;
+use crate::unpack::LittleUnpack;
 
 #[derive(Debug, PartialEq)]
 pub enum FrameType {

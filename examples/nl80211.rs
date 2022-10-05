@@ -744,7 +744,7 @@ enum UserCommand {
 
 impl UserCommand {
     fn requires_root(&self) -> bool {
-        use UserCommand::*;
+        use crate::UserCommand::*;
         match *self {
             Scan => true,
             Disconnect => true,
@@ -753,7 +753,7 @@ impl UserCommand {
         }
     }
     fn requires_device(&self) -> bool {
-        use UserCommand::*;
+        use crate::UserCommand::*;
         match *self {
             PhyInformation | DeviceInformation => false,
             _ => true,

@@ -15,9 +15,9 @@ use std::io;
 use encoding::all::ISO_8859_1;
 use encoding::{DecoderTrap, Encoding};
 
-use information_element_ids::InformationElementId;
+use crate::information_element_ids::InformationElementId;
 use netlink_rust::{ConvertFrom, Error};
-use unpack::{unpack_vec, LittleUnpack};
+use crate::unpack::{unpack_vec, LittleUnpack};
 
 /// Unprocessed information element
 ///
