@@ -743,15 +743,6 @@ enum UserCommand {
 }
 
 impl UserCommand {
-    fn requires_root(&self) -> bool {
-        use crate::UserCommand::*;
-        match *self {
-            Scan => true,
-            Disconnect => true,
-            SetRegulatory { .. } => true,
-            _ => false,
-        }
-    }
     fn requires_device(&self) -> bool {
         use crate::UserCommand::*;
         match *self {
@@ -766,11 +757,6 @@ fn main() {
     let uid = unsafe { libc::getuid() };
 
     let user_command = opt.user_command.unwrap_or(UserCommand::Monitor);
-
-    if uid != 0 && user_command.requires_root() {
-        println!("Need to be root");
-        return;
-    }
 
     let mut control_socket = Socket::new(Protocol::Generic).expect("Failed to open control socket");
     let family = generic::Family::from_name(&mut control_socket, "nl80211")

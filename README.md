@@ -11,10 +11,16 @@ If a new scan event is received the scan results will be fetched.
 $ cargo run --release --example nl80211
 ```
 
-It is also possible to initiate a scan as super user.
+To run some example commands administrative access is needed, Set administrative capabilities like so,
+
+```
+sudo setcap cap_net_admin+ep ./target/release/examples/nl80211
+```
+
+Then it is possible to initiate a scan for example.
 
 ```bash
-sudo ./target/release/examples/nl80211 scan
+./target/release/examples/nl80211 scan
 ```
 
 ## Compatability

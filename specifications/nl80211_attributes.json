@@ -1828,6 +1828,30 @@
           "original_name": "NL80211_BSS_FREQUENCY_OFFSET",
           "data_type": "bytes",
           "data_length": 6
+        },
+        "MultiLinkOperationLinkIdentifier": {
+          "value": 21,
+          "original_name": "NL80211_BSS_MLO_LINK_ID",
+          "data_type": "u8",
+          "data_length": 0
+        },
+        "MultiLinkDeviceAddress": {
+          "value": 22,
+          "original_name": "NL80211_BSS_MLD_ADDR",
+          "data_type": "bytes",
+          "data_length": 6
+        },
+        "UseFor": {
+          "value": 23,
+          "original_name": "NL80211_BSS_USE_FOR",
+          "data_type": "u32",
+          "data_length": 0
+        },
+        "CannotUseReason": {
+          "value": 24,
+          "original_name": "NL80211_BSS_CANNOT_USE_REASONS",
+          "data_type": "u64",
+          "data_length": 0
         }
       }
     },
