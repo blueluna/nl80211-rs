@@ -16,8 +16,8 @@ use encoding::all::ISO_8859_1;
 use encoding::{DecoderTrap, Encoding};
 
 use crate::information_element_ids::InformationElementId;
-use netlink_rust::{ConvertFrom, Error};
 use crate::unpack::{unpack_vec, LittleUnpack};
+use netlink_rust::{ConvertFrom, Error};
 
 /// Unprocessed information element
 ///
@@ -395,20 +395,17 @@ impl RobustSecurityNetwork {
     }
 
     /// RSN version
-    pub fn version(&self) -> u16
-    {
+    pub fn version(&self) -> u16 {
         self.version
     }
 
     /// Pairwise transient key security association (PTKSA) replay counters
-    pub fn pairwise_transient_key_security_association_replay_counters(&self) -> u8
-    {
+    pub fn pairwise_transient_key_security_association_replay_counters(&self) -> u8 {
         self.ptksa_counters
     }
 
     /// group temporal key security association (GTKSA) replay counters
-    pub fn group_temporal_key_security_association_replay_counters(&self) -> u8
-    {
+    pub fn group_temporal_key_security_association_replay_counters(&self) -> u8 {
         self.gtksa_counters
     }
 }

@@ -1,8 +1,8 @@
 use crate::attributes;
 use crate::commands::Command;
+use crate::regulatory::RegulatoryInformation;
 use netlink_rust::generic;
 use netlink_rust::{Attribute, ConvertFrom, Error, HardwareAddress, MessageMode, Socket};
-use crate::regulatory::RegulatoryInformation;
 use std::fmt;
 use std::io;
 
