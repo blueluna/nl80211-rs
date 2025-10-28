@@ -14,7 +14,7 @@ edition = "2018"
 members = [ "nl80211-buildtools" ]
 
 [build-dependencies]
-nl80211-buildtools = { path = "nl80211-buildtools", version = "0.1" }
+nl80211-buildtools = { path = "nl80211-buildtools", version = "0.1.1" }
 
 [dependencies]
 bitflags =  "2.10"

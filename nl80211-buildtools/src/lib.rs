@@ -332,7 +332,7 @@ pub struct AttributeItem {
     pub value: u16,
     pub original_name: String,
     pub data_type: ValueType,
-    pub data_length: Option<usize>,
+    pub data_length: usize,
     pub max_length: Option<usize>,
 }
 

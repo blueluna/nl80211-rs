@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::time;
 
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use regex::Regex;
 
 use nl80211_buildtools::{
@@ -181,7 +181,6 @@ fn lookup_kernel_names(filename: &str, pattern: &str) -> Option<Vec<KernelEnum>>
                 } else if empty_re.is_match(&line) {
                 } else {
                     index = index + 1;
-                    println!("X {}", &line);
                 }
             }
             2 => {
@@ -207,40 +206,20 @@ enum GeneratorType {
 
 fn main() {
     // -i /usr/include/linux/nl80211.h -p nl80211_attrs -o spec.json
-    let matches = App::new("Specification generator")
-        .version("0.1")
+    let matches = Command::new("Specification generator")
+        .version("0.1.1")
         .author("Erik Bånvik <erik.public@gmail.com>")
-        .arg(
-            Arg::with_name("input")
-                .short('i')
-                .required(true)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("name")
-                .short('n')
-                .required(true)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("type")
-                .short('t')
-                .required(false)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("output")
-                .short('o')
-                .required(true)
-                .takes_value(true),
-        )
+        .arg(Arg::new("input").short('i').required(true))
+        .arg(Arg::new("name").short('n').required(true))
+        .arg(Arg::new("type").short('t').required(false))
+        .arg(Arg::new("output").short('o').required(true))
         .get_matches();
 
-    let input_filepath = matches.value_of("input").unwrap();
-    let output_filepath = matches.value_of("output").unwrap();
-    let enum_name = matches.value_of("name").unwrap();
+    let input_filepath = matches.get_one::<String>("input").unwrap().clone();
+    let output_filepath = matches.get_one::<String>("output").unwrap();
+    let enum_name = matches.get_one::<String>("name").unwrap().clone();
 
-    let generator_type = match matches.value_of("type") {
+    let generator_type = match matches.get_one::<String>("type") {
         Some(t) => {
             if t == "attribute" {
                 GeneratorType::Attribute
@@ -284,7 +263,7 @@ fn main() {
                     let reader = BufReader::new(file);
                     data_type = match kernel_datatype(reader, original_name) {
                         Some(dt) => Some(dt.0),
-                        None => None,
+                        None => Some(ValueType::bytes),
                     };
                 }
                 let data_type_length = match data_type {
@@ -297,16 +276,20 @@ fn main() {
                 if value.value > max_value {
                     max_value = value.value;
                 }
-                attribute_items.insert(
-                    new_name,
-                    AttributeItem {
-                        value: value.value as u16,
-                        original_name: original_name.to_owned(),
-                        data_type: data_type.unwrap(),
-                        data_length: data_type_length,
-                        max_length: None,
-                    },
-                );
+                if let Some(dt) = data_type {
+                    attribute_items.insert(
+                        new_name,
+                        AttributeItem {
+                            value: value.value as u16,
+                            original_name: original_name.to_owned(),
+                            data_type: dt,
+                            data_length: data_type_length.unwrap_or(0),
+                            max_length: None,
+                        },
+                    );
+                } else {
+                    eprintln!("Missing datatype for {}", original_name);
+                }
             }
             GeneratorType::Enum => {
                 enumeration_items.insert(
