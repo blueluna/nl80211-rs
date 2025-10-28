@@ -21,13 +21,13 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-  build-1-30-0:
+  build-1-71-0:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@1.30.0
+    - uses: dtolnay/rust-toolchain@1.71.0
     - name: Build
       run: cargo build --verbose
     - name: Run tests
