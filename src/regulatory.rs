@@ -6,6 +6,7 @@ use netlink_rust::generic;
 use netlink_rust::Result;
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
     pub struct RegulatoryFlags: u32 {
         const NO_OFDM       = 1;
         const NO_CCK        = 1 << 1;

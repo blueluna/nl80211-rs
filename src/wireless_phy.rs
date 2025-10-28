@@ -26,6 +26,7 @@ pub struct WirelessPhy {
 }
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
     pub struct FeatureFlags: u32 {
         const SK_TX_STATUS               = 1 << 0;
         const HT_IBSS                    = 1 << 1;
@@ -64,6 +65,7 @@ bitflags! {
 
 // This is the same as attributes::InterfaceType but as bit flags
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
     pub struct InterfaceTypeFlags: u32 {
         const UNSPECIFIED = 1 << 0;
         const ADHOC       = 1 << 1;
@@ -103,6 +105,7 @@ impl From<InterfaceType> for InterfaceTypeFlags {
 }
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
     pub struct ExtendedFeaturesFlags: u64 {
         const VHT_IBSS                           = 1 << 0;
         const RRM                                = 1 << 1;

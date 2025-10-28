@@ -7,6 +7,7 @@ use netlink_rust::{HardwareAddress, Result};
 
 /// Trait for unpacking values from byte stream
 pub trait LittleUnpack: Sized {
+    #[allow(dead_code)]
     fn unpack(buffer: &[u8]) -> Result<Self> {
         Self::unpack_with_size(buffer).and_then(|r| Ok(r.1))
     }

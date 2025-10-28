@@ -262,7 +262,7 @@ pub fn make_attribute(
     code
 }
 
-trait Enumeration {
+pub trait Enumeration {
     type T: fmt::Display;
     fn value(&self) -> Self::T;
     fn original_name(&self) -> Option<String>;

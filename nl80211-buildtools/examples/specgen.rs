@@ -209,7 +209,7 @@ fn main() {
     // -i /usr/include/linux/nl80211.h -p nl80211_attrs -o spec.json
     let matches = App::new("Specification generator")
         .version("0.1")
-        .author("Erik Svensson <erik.public@gmail.com>")
+        .author("Erik Bånvik <erik.public@gmail.com>")
         .arg(
             Arg::with_name("input")
                 .short('i')

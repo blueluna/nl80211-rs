@@ -1,7 +1,7 @@
 [package]
 name = "nl80211-rs"
 version = "0.1.1"
-authors = ["Erik Svensson <erik.public@gmail.com>"]
+authors = ["Erik Bånvik <erik.public@gmail.com>"]
 build = "build.rs"
 description="nl80211 library in Rust"
 readme = "README.md"
@@ -17,14 +17,14 @@ members = [ "nl80211-buildtools" ]
 nl80211-buildtools = { path = "nl80211-buildtools", version = "0.1" }
 
 [dependencies]
-bitflags =  "1.0"
+bitflags =  "2.10"
 byteorder = "1.3"
 encoding = "0.2"
 netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
 
 [dev-dependencies]
 libc = "0.2"
-mio = { version = "0.8", features = ["os-ext", "os-poll"] }
+mio = { version = "1", features = ["os-ext", "os-poll"] }
 structopt = { version = "0.3", default-features = false }
 
 [badges]

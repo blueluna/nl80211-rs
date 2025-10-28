@@ -276,6 +276,7 @@ impl fmt::Display for AuthenticationKeyManagement {
 
 bitflags! {
     /// Robust security network (RSN) capabilities
+    #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
     pub struct RsnCapabilities: u16 {
         /// Signals support for pre-authentication
         const PREAUTHENTICATION = 0x0001;
@@ -391,6 +392,24 @@ impl RobustSecurityNetwork {
             return ProtectedManagementFramesMode::Capable;
         }
         ProtectedManagementFramesMode::Disabled
+    }
+
+    /// RSN version
+    pub fn version(&self) -> u16
+    {
+        self.version
+    }
+
+    /// Pairwise transient key security association (PTKSA) replay counters
+    pub fn pairwise_transient_key_security_association_replay_counters(&self) -> u8
+    {
+        self.ptksa_counters
+    }
+
+    /// group temporal key security association (GTKSA) replay counters
+    pub fn group_temporal_key_security_association_replay_counters(&self) -> u8
+    {
+        self.gtksa_counters
     }
 }
 

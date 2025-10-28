@@ -36,4 +36,4 @@ Tested on following platforms,
 
  Licensed under the MIT license.
 
-[![Build Status](https://travis-ci.org/blueluna/nl80211-rs.svg?branch=master)](https://travis-ci.org/blueluna/nl80211-rs) [![Crates.io](https://img.shields.io/crates/v/nl80211-rs.svg)](https://crates.io/crates/nl80211-rs)
+[![Crates.io](https://img.shields.io/crates/v/nl80211-rs.svg)](https://crates.io/crates/nl80211-rs)
