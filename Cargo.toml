@@ -20,7 +20,7 @@ nl80211-buildtools = { path = "nl80211-buildtools", version = "0.1.1" }
 bitflags =  "2.10"
 byteorder = "1.3"
 encoding = "0.2"
-netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
+netlink-rust = { git = "https://github.com/blueluna/netlink-rs", version = "0.1.1", branch = "master" }
 
 [dev-dependencies]
 libc = "0.2"
